@@ -1,6 +1,8 @@
 package net.benwoodworth.groupme.client
 
 import net.benwoodworth.groupme.GroupMeDsl
+import net.benwoodworth.groupme.User
+import net.benwoodworth.groupme.UserInfo
 import net.benwoodworth.groupme.client.chat.Chat
 import net.benwoodworth.groupme.client.chat.ChatClient
 import net.benwoodworth.groupme.client.chat.direct.DirectChat
@@ -8,7 +10,9 @@ import net.benwoodworth.groupme.client.chat.direct.DirectChatClient
 import net.benwoodworth.groupme.client.chat.group.GroupChat
 import net.benwoodworth.groupme.client.chat.group.GroupChatClient
 
-interface GroupMeClient {
+interface GroupMeClient : UserInfoScope {
+    val authenticatedUser: AuthenticatedUser
+
     suspend operator fun invoke(@GroupMeDsl block: suspend GroupMeClient.() -> Unit): GroupMeClient
 
 
