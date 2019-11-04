@@ -9,20 +9,20 @@ interface User {
     override fun equals(other: Any?): Boolean
 }
 
-fun User(userId: String): User {
-    return object : User {
-        override val userId: String = userId
-
-        override fun equals(other: Any?): Boolean {
-            return other is User && userId == other.userId
-        }
-
-        override fun hashCode(): Int {
-            return userId.hashCode()
-        }
-
-        override fun toString(): String {
-            return "User($userId)"
-        }
+internal class UserImpl(override val userId: String) : User {
+    override fun equals(other: Any?): Boolean {
+        return other is User && userId == other.userId
     }
+
+    override fun hashCode(): Int {
+        return userId.hashCode()
+    }
+
+    override fun toString(): String {
+        return "User($userId)"
+    }
+}
+
+fun User(userId: String): User {
+    return UserImpl(userId)
 }

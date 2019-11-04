@@ -9,20 +9,22 @@ interface Chat {
     override fun equals(other: Any?): Boolean
 }
 
-fun Chat(chatId: String): Chat {
-    return object : Chat {
-        override val chatId: String = chatId
-
-        override fun equals(other: Any?): Boolean {
-            return other is Chat && chatId == other.chatId
-        }
-
-        override fun hashCode(): Int {
-            return chatId.hashCode()
-        }
-
-        override fun toString(): String {
-            return "Chat($chatId)"
-        }
+internal class ChatImpl(
+    override val chatId: String
+) : Chat {
+    override fun equals(other: Any?): Boolean {
+        return other is Chat && chatId == other.chatId
     }
+
+    override fun hashCode(): Int {
+        return chatId.hashCode()
+    }
+
+    override fun toString(): String {
+        return "Chat($chatId)"
+    }
+}
+
+fun Chat(chatId: String): Chat {
+    return ChatImpl(chatId)
 }

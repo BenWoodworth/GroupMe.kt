@@ -8,13 +8,15 @@ interface DirectChat : Chat {
     val toUser: User
 }
 
-fun DirectChat(fromUser: User, toUser: User): DirectChat {
-    return object : DirectChat, Chat by Chat("$fromUser+$toUser") {
-        override val fromUser: User = fromUser
-        override val toUser: User = toUser
-
-        override fun toString(): String {
-            return "DirectChat($fromUser, $toUser)"
-        }
+internal class DirectChatImpl(
+    override val fromUser: User,
+    override val toUser: User
+) : DirectChat, Chat by Chat("$fromUser+$toUser") {
+    override fun toString(): String {
+        return "DirectChat($fromUser, $toUser)"
     }
+}
+
+fun DirectChat(fromUser: User, toUser: User): DirectChat {
+    return DirectChatImpl(fromUser, toUser)
 }
