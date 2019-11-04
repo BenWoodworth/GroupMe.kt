@@ -1,6 +1,6 @@
 package net.benwoodworth.groupme
 
-import net.benwoodworth.groupme.media.GroupMeImage
+import net.benwoodworth.groupme.client.media.GroupMeImage
 
 interface UserInfo : User {
     val name: String
