@@ -1,9 +1,10 @@
 package net.benwoodworth.groupme.client.chat
 
-import net.benwoodworth.groupme.GroupMeDsl
+import net.benwoodworth.groupme.GroupMeScope
 
+@GroupMeScope
 interface ChatClient {
     val chat: Chat
 
-    suspend operator fun invoke(@GroupMeDsl block: suspend ChatClient.() -> Unit): ChatClient
+    suspend operator fun invoke(block: suspend ChatClient.() -> Unit): ChatClient
 }
