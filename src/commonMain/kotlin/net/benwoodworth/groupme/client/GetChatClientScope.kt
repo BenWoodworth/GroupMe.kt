@@ -9,35 +9,35 @@ import net.benwoodworth.groupme.client.chat.group.GroupChat
 import net.benwoodworth.groupme.client.chat.group.GroupChatClient
 
 interface GetChatClientScope {
-    fun getChatClient(chat: Chat, @GroupMeDsl block: suspend ChatClient.() -> Unit = {}): ChatClient
+    fun getChatClient(chat: Chat): ChatClient
 
-    fun Chat.getClient(@GroupMeDsl block: suspend ChatClient.() -> Unit = {}): ChatClient {
-        return getChatClient(this, block)
+    fun Chat.getClient(): ChatClient {
+        return getChatClient(this)
     }
 
     suspend operator fun Chat.invoke(@GroupMeDsl block: suspend ChatClient.() -> Unit): ChatClient {
-        return getChatClient(this, block)
+        return getChatClient(this)
     }
 
 
-    fun getChatClient(chat: DirectChat, @GroupMeDsl block: suspend DirectChatClient.() -> Unit = {}): DirectChatClient
+    fun getChatClient(chat: DirectChat): DirectChatClient
 
-    fun DirectChat.getClient(@GroupMeDsl block: suspend DirectChatClient.() -> Unit = {}): DirectChatClient {
-        return getChatClient(this, block)
+    fun DirectChat.getClient(): DirectChatClient {
+        return getChatClient(this)
     }
 
     suspend operator fun DirectChat.invoke(@GroupMeDsl block: suspend DirectChatClient.() -> Unit): DirectChatClient {
-        return getChatClient(this, block)
+        return getChatClient(this)
     }
 
 
-    fun getChatClient(chat: GroupChat, @GroupMeDsl block: suspend GroupChatClient.() -> Unit = {}): GroupChatClient
+    fun getChatClient(chat: GroupChat): GroupChatClient
 
-    fun GroupChat.getClient(@GroupMeDsl block: suspend GroupChatClient.() -> Unit = {}): GroupChatClient {
-        return getChatClient(this, block)
+    fun GroupChat.getClient(): GroupChatClient {
+        return getChatClient(this)
     }
 
     suspend operator fun GroupChat.invoke(@GroupMeDsl block: suspend GroupChatClient.() -> Unit): GroupChatClient {
-        return getChatClient(this, block)
+        return getChatClient(this)
     }
 }
