@@ -1,6 +1,6 @@
 package net.benwoodworth.groupme.api
 
-interface HttpClient {
+internal interface HttpClient {
     suspend fun sendRequest(
         method: String,
         url: String,
