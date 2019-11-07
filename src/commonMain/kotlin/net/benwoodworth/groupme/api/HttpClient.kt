@@ -8,4 +8,6 @@ internal interface HttpClient {
         params: Map<String, String?> = emptyMap(),
         body: String? = null
     ): HttpResponse
+
+    fun urlEncode(string: String): String
 }
