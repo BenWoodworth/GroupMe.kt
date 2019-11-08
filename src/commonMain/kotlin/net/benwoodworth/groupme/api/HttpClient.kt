@@ -7,7 +7,13 @@ internal interface HttpClient {
         headers: Map<String, String?> = emptyMap(),
         params: Map<String, String?> = emptyMap(),
         body: String? = null
-    ): HttpResponse
+    ): Response
 
     fun urlEncode(string: String): String
+
+    class Response(
+        val code: Int,
+        val message: String,
+        val data: String
+    )
 }
