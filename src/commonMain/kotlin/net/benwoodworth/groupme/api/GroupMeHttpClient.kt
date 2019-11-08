@@ -8,7 +8,7 @@ internal class GroupMeHttpClient(
     private val accessTokenHeader = "X-ACCESS-TOKEN" to apiKey
 
     override suspend fun sendRequest(
-        method: String,
+        method: HttpMethod,
         url: String,
         headers: Map<String, String?>,
         params: Map<String, String?>,
@@ -24,7 +24,7 @@ internal class GroupMeHttpClient(
     }
 
     suspend fun sendApiV3Request(
-        method: String,
+        method: HttpMethod,
         endpoint: String,
         headers: Map<String, String?> = emptyMap(),
         params: Map<String, String?> = emptyMap(),

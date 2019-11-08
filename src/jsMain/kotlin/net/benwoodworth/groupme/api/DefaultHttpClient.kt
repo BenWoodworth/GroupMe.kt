@@ -6,18 +6,18 @@ import kotlin.coroutines.suspendCoroutine
 
 internal actual class DefaultHttpClient actual constructor() : HttpClient {
     override suspend fun sendRequest(
-        method: String,
+        method: HttpMethod,
         url: String,
         headers: Map<String, String?>,
         params: Map<String, String?>,
         body: String?
-    ): HttpResponse {
+    ): HttpClient.Response {
         return suspendCoroutine { continuation ->
             val request = XMLHttpRequest()
 
             request.onload = {
                 continuation.resume(
-                    HttpResponse(
+                    HttpClient.Response(
                         request.status.toInt(),
                         request.statusText,
                         request.responseText

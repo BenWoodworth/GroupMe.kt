@@ -10,12 +10,12 @@ import kotlin.coroutines.suspendCoroutine
 internal actual class DefaultHttpClient actual constructor(
 ) : HttpClient {
     override suspend fun sendRequest(
-        method: String,
+        method: HttpMethod,
         url: String,
         headers: Map<String, String?>,
         params: Map<String, String?>,
         body: String?
-    ): HttpResponse {
+    ): HttpClient.Response {
         return suspendCoroutine { continuation ->
             val paramsUrl = params
                 .filterValues { it != null }
@@ -27,7 +27,7 @@ internal actual class DefaultHttpClient actual constructor(
 
             val connection = URL(paramsUrl).openConnection() as HttpURLConnection
 
-            connection.requestMethod = method
+            connection.requestMethod = method.methodName
             connection.doInput = true
 
             for ((key, value) in headers) {
@@ -48,7 +48,7 @@ internal actual class DefaultHttpClient actual constructor(
             }
 
             continuation.resume(
-                HttpResponse(
+                HttpClient.Response(
                     code = connection.responseCode,
                     message = connection.responseMessage,
                     data = responseData?.toString(Charsets.UTF_8) ?: ""
