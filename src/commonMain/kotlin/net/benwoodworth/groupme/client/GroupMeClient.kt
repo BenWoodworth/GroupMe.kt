@@ -1,21 +1,18 @@
 package net.benwoodworth.groupme.client
 
-import kotlinx.serialization.json.Json
 import net.benwoodworth.groupme.GroupMeScope
-import net.benwoodworth.groupme.api.GroupMeHttpClient
+import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.client.chat.MessageLikingScope
 
 @GroupMeScope
 interface GroupMeClient : GetUserInfoScope, GetChatScope, GetChatClientScope, MessageLikingScope {
-    val authenticatedUser: AuthenticatedUser
+    val authenticatedUser: User
 
     suspend operator fun invoke(block: suspend GroupMeClient.() -> Unit): GroupMeClient
 }
 
 internal class GroupMeClientImpl(
-    override val authenticatedUser: AuthenticatedUser,
-    val httpClient: GroupMeHttpClient,
-    val json: Json,
+    override val authenticatedUser: User,
     getUserInfoScope: GetUserInfoScope,
     getChatScope: GetChatScope,
     getChatClientScope: GetChatClientScope,
