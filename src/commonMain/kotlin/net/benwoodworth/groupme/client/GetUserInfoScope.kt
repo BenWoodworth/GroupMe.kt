@@ -8,7 +8,5 @@ interface GetUserInfoScope {
 
     suspend fun User.getInfo(): UserInfo
 
-    suspend fun getUserInfo(user: AuthenticatedUser): AuthenticatedUserInfo
-
-    suspend fun AuthenticatedUser.getInfo(): AuthenticatedUserInfo
+    suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo
 }

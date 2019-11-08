@@ -3,7 +3,7 @@ package net.benwoodworth.groupme.client
 import net.benwoodworth.groupme.UserInfo
 import net.benwoodworth.groupme.client.media.GroupMeImage
 
-interface AuthenticatedUserInfo : UserInfo, AuthenticatedUser
+interface AuthenticatedUserInfo : UserInfo
 
 internal class AuthenticatedUserInfoImpl(
     userId: String,
