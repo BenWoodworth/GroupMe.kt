@@ -10,7 +10,7 @@ internal class ResponseEnvelope<T : Any>(
     @Serializable
     class Meta(
         val code: Int,
-        val errors: List<String>
+        val errors: List<String>? = null
     )
 
     @Serializable
