@@ -1,6 +1,8 @@
 package net.benwoodworth.groupme.client
 
+import kotlinx.serialization.json.Json
 import net.benwoodworth.groupme.GroupMeScope
+import net.benwoodworth.groupme.api.GroupMeHttpClient
 import net.benwoodworth.groupme.client.chat.Chat
 import net.benwoodworth.groupme.client.chat.ChatClient
 import net.benwoodworth.groupme.client.chat.direct.DirectChat
@@ -36,5 +38,22 @@ interface GetChatClientScope {
 
     suspend operator fun GroupChat.invoke(block: suspend GroupChatClient.() -> Unit): GroupChatClient {
         return getChatClient(this)
+    }
+}
+
+internal class GetChatClientScopeImpl(
+    private val httpClient: GroupMeHttpClient,
+    private val json: Json
+) : GetChatClientScope {
+    override fun getChatClient(chat: Chat): ChatClient {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getChatClient(chat: DirectChat): DirectChatClient {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getChatClient(chat: GroupChat): GroupChatClient {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
