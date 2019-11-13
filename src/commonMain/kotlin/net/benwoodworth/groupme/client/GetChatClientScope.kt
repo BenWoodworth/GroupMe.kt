@@ -2,7 +2,6 @@ package net.benwoodworth.groupme.client
 
 import kotlinx.serialization.json.Json
 import net.benwoodworth.groupme.GroupMeScope
-import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.api.GroupMeHttpClient
 import net.benwoodworth.groupme.client.chat.Chat
 import net.benwoodworth.groupme.client.chat.ChatClient
@@ -41,13 +40,7 @@ internal class GetChatClientScopeImpl(
     private val json: Json
 ) : GetChatClientScope {
     override fun getChatClient(chat: Chat): ChatClient {
-        val chatIdParts = chat.chatId.split('+')
-
-        return when (chatIdParts.size) {
-            1 -> getChatClient(GroupChat(chatIdParts[0]))
-            2 -> getChatClient(DirectChat(User(chatIdParts[0]), User(chatIdParts[1])))
-            else -> throw UnsupportedOperationException("Unable to create client for chat $chat")
-        }
+        throw UnsupportedOperationException("Unable to create client for $chat")
     }
 
     override fun getChatClient(chat: DirectChat): DirectChatClient {
