@@ -1,22 +1,18 @@
 package net.benwoodworth.groupme.client
 
 import net.benwoodworth.groupme.GroupMeScope
-import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.client.chat.MessageLikingScope
 
 @GroupMeScope
-interface GroupMeClient : GetUserInfoScope, GetChatScope, GetChatClientScope, MessageLikingScope {
-    val authenticatedUser: User
-}
+interface GroupMeClient : UserScope, GetChatScope, GetChatClientScope, MessageLikingScope
 
 internal class GroupMeClientImpl(
-    override val authenticatedUser: User,
-    getUserInfoScope: GetUserInfoScope,
+    getUserInfoScope: UserScope,
     getChatScope: GetChatScope,
     getChatClientScope: GetChatClientScope,
     messageLikingScope: MessageLikingScope
 ) : GroupMeClient,
-    GetUserInfoScope by getUserInfoScope,
+    UserScope by getUserInfoScope,
     GetChatScope by getChatScope,
     GetChatClientScope by getChatClientScope,
     MessageLikingScope by messageLikingScope

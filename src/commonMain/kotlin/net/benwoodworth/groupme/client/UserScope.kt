@@ -9,7 +9,9 @@ import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.media.GroupMeImage
 
-interface GetUserInfoScope {
+interface UserScope {
+    val authenticatedUser: User
+
     suspend fun getUserInfo(user: User): UserInfo
 
     suspend fun User.getInfo(): UserInfo {
@@ -19,10 +21,11 @@ interface GetUserInfoScope {
     suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo
 }
 
-internal class GetUserInfoScopeImpl(
+internal class UserScopeImpl(
+    override val authenticatedUser: User,
     private val httpClient: GroupMeHttpClient,
     private val json: Json
-) : GetUserInfoScope {
+) : UserScope {
     override suspend fun getUserInfo(user: User): UserInfo {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
