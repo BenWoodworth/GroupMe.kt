@@ -11,5 +11,5 @@ interface GroupChatClient : ChatClient, GroupMessagingScope {
 internal class GroupChatClientImpl(
     override val chat: GroupChat,
     groupMessagingScope: GroupMessagingScope
-) : ChatClient,
+) : GroupChatClient,
     GroupMessagingScope by groupMessagingScope
