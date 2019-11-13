@@ -25,18 +25,10 @@ interface GetChatClientScope {
         return getChatClient(this)
     }
 
-    suspend operator fun DirectChat.invoke(block: suspend DirectChatClient.() -> Unit): DirectChatClient {
-        return getChatClient(this)
-    }
-
 
     fun getChatClient(chat: GroupChat): GroupChatClient
 
     fun GroupChat.getClient(): GroupChatClient {
-        return getChatClient(this)
-    }
-
-    suspend operator fun GroupChat.invoke(block: suspend GroupChatClient.() -> Unit): GroupChatClient {
         return getChatClient(this)
     }
 }
