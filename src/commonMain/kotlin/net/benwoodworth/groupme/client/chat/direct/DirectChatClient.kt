@@ -7,3 +7,10 @@ import net.benwoodworth.groupme.client.chat.ChatClient
 interface DirectChatClient : ChatClient {
     override val chat: DirectChat
 }
+
+internal class DirectChatClientImpl(
+    override val chat: DirectChat,
+    directMessagingScope: DirectMessagingScope
+) : DirectChatClient,
+    DirectMessagingScope by directMessagingScope
+

@@ -7,6 +7,8 @@ import net.benwoodworth.groupme.client.chat.Chat
 import net.benwoodworth.groupme.client.chat.ChatClient
 import net.benwoodworth.groupme.client.chat.direct.DirectChat
 import net.benwoodworth.groupme.client.chat.direct.DirectChatClient
+import net.benwoodworth.groupme.client.chat.direct.DirectChatClientImpl
+import net.benwoodworth.groupme.client.chat.direct.DirectMessagingScopeImpl
 import net.benwoodworth.groupme.client.chat.group.GroupChat
 import net.benwoodworth.groupme.client.chat.group.GroupChatClient
 import net.benwoodworth.groupme.client.chat.group.GroupChatClientImpl
@@ -44,7 +46,10 @@ internal class GetChatClientScopeImpl(
     }
 
     override fun getChatClient(chat: DirectChat): DirectChatClient {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return DirectChatClientImpl(
+            chat = chat,
+            directMessagingScope = DirectMessagingScopeImpl(chat, httpClient, json)
+        )
     }
 
     override fun getChatClient(chat: GroupChat): GroupChatClient {
