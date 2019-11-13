@@ -4,6 +4,6 @@ import net.benwoodworth.groupme.GroupMeScope
 import net.benwoodworth.groupme.client.chat.ChatClient
 
 @GroupMeScope
-interface GroupChatClient : ChatClient {
+interface GroupChatClient : ChatClient, GroupMessagingScope {
     override val chat: GroupChat
 }
