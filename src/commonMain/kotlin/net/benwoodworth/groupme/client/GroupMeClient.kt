@@ -7,12 +7,12 @@ import net.benwoodworth.groupme.client.chat.MessageLikingScope
 interface GroupMeClient : UserScope, GetChatScope, GetChatClientScope, MessageLikingScope
 
 internal class GroupMeClientImpl(
-    getUserInfoScope: UserScope,
+    userScope: UserScope,
     getChatScope: GetChatScope,
     getChatClientScope: GetChatClientScope,
     messageLikingScope: MessageLikingScope
 ) : GroupMeClient,
-    UserScope by getUserInfoScope,
+    UserScope by userScope,
     GetChatScope by getChatScope,
     GetChatClientScope by getChatClientScope,
     MessageLikingScope by messageLikingScope
