@@ -129,21 +129,21 @@ class GroupMeClient internal constructor(
     }
 
     fun getChatClient(chat: Chat): ChatClient {
-        TODO()
+        throw IllegalStateException("Unable to create client for $chat")
     }
 
     val Chat.client
         get() = getChatClient(this)
 
     fun getChatClient(chat: DirectChat): DirectChatClient {
-        TODO()
+        return DirectChatClient(chat, this)
     }
 
     val DirectChat.client
         get() = getChatClient(this)
 
     fun getChatClient(chat: GroupChat): GroupChatClient {
-        TODO()
+        return GroupChatClient(chat, this)
     }
 
     val GroupChat.client
