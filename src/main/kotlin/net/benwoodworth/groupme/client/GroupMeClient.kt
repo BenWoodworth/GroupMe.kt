@@ -24,6 +24,7 @@ import net.benwoodworth.groupme.client.chat.direct.DirectChatClient
 import net.benwoodworth.groupme.client.chat.direct.DirectChatInfo
 import net.benwoodworth.groupme.client.chat.group.GroupChat
 import net.benwoodworth.groupme.client.chat.group.GroupChatClient
+import net.benwoodworth.groupme.client.chat.group.GroupChatInfo
 import net.benwoodworth.groupme.client.media.GroupMeImage
 
 @GroupMeScope
@@ -58,7 +59,7 @@ class GroupMeClient internal constructor(
         getDirectChats().collect { emit(it) }
     }
 
-    fun getDirectChats(): Flow<DirectChat> = flow {
+    fun getDirectChats(): Flow<DirectChatInfo> = flow {
         @Serializable
         class ResponseChat(
             val other_user: JsonObject
@@ -93,8 +94,38 @@ class GroupMeClient internal constructor(
         } while (responseData.response!!.any())
     }
 
-    fun getGroupChats(): Flow<GroupChat> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun getGroupChats(): Flow<GroupChatInfo> = flow {
+        @Serializable
+        class ResponseChat(
+            val id: String
+        )
+
+        var page = 1
+        do {
+            val response = httpClient.sendApiV3Request(
+                method = HttpMethod.Get,
+                endpoint = "/groups",
+                params = mapOf(
+                    "page" to page.toString(),
+                    "per_page" to "100"
+                )
+            )
+
+            val responseData = json.parse(
+                deserializer = ResponseEnvelope.serializer(ResponseChat.serializer().list),
+                string = response.data
+            )
+
+            responseData.response!!.forEach {
+                emit(
+                    GroupChatInfo(
+                        chatId = it.id
+                    )
+                )
+            }
+
+            page++
+        } while (responseData.response!!.any())
     }
 
     fun getChatClient(chat: Chat): ChatClient {
