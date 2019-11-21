@@ -10,6 +10,19 @@ class GroupChatInfo internal constructor(
     val name: String
         get() = chatJson.getPrimitive("name").content
 
+    val messages: Messages = Messages()
+
+    inner class Messages internal constructor() {
+        private val messagesJson: JsonObject
+            get() = chatJson.getObject("messages")
+
+        val count: Int
+            get() = messagesJson.getPrimitive("count").int
+
+        val preview: GroupSentMessageInfo
+            get() = GroupSentMessageInfo(messagesJson.getObject("preview"), GroupChat(chatId))
+    }
+
     override fun toString(): String {
         return "GroupChat($name)"
     }

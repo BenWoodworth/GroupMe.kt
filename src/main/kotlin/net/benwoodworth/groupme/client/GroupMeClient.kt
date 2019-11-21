@@ -77,7 +77,15 @@ class GroupMeClient internal constructor(
             )
 
             responseData.response!!.forEach {
-                emit(DirectChatInfo(authenticatedUser, it))
+                val otherUser = it.getObject("other_user").run {
+                    UserInfo(
+                        userId = getPrimitive("id").content,
+                        name = getPrimitive("name").content,
+                        avatar = getPrimitive("avatar_url").contentOrNull?.let { url -> GroupMeImage(url) }
+                    )
+                }
+
+                emit(DirectChatInfo(authenticatedUser, otherUser))
             }
 
             page++
