@@ -1,12 +1,19 @@
 package net.benwoodworth.groupme
 
+import kotlinx.serialization.json.JsonObject
 import net.benwoodworth.groupme.client.media.GroupMeImage
 
 open class UserInfo internal constructor(
-    userId: String,
-    val name: String,
+    val userJson: JsonObject
+) : User(
+    userId = userJson.getPrimitive("user_id").content
+) {
+    val name: String
+        get() = userJson.getPrimitive("name").content
+
     val avatar: GroupMeImage?
-): User(userId) {
+        get() = userJson.getPrimitive("avatar_url").contentOrNull?.let { GroupMeImage(it) }
+
     override fun toString(): String {
         return "User($name)"
     }

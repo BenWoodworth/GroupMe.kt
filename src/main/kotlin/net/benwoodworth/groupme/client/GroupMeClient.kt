@@ -1,10 +1,12 @@
 package net.benwoodworth.groupme.client
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.list
 import net.benwoodworth.groupme.GroupMeScope
 import net.benwoodworth.groupme.User
@@ -19,6 +21,7 @@ import net.benwoodworth.groupme.client.chat.ChatClient
 import net.benwoodworth.groupme.client.chat.Message
 import net.benwoodworth.groupme.client.chat.direct.DirectChat
 import net.benwoodworth.groupme.client.chat.direct.DirectChatClient
+import net.benwoodworth.groupme.client.chat.direct.DirectChatInfo
 import net.benwoodworth.groupme.client.chat.group.GroupChat
 import net.benwoodworth.groupme.client.chat.group.GroupChatClient
 import net.benwoodworth.groupme.client.media.GroupMeImage
@@ -36,35 +39,23 @@ class GroupMeClient internal constructor(
     suspend fun User.getInfo() = getUserInfo(this)
 
     suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo {
-        @Serializable
-        class Response(
-            val id: String,
-            val image_url: String,
-            val name: String
-        )
-
         val response = httpClient.sendApiV3Request(
             method = HttpMethod.Get,
             endpoint = "/users/me"
         )
 
         val responseData = json.parse(
-            deserializer = ResponseEnvelope.serializer(Response.serializer()),
+            deserializer = ResponseEnvelope.serializer(JsonObject.serializer()),
             string = response.data
         )
 
-        return responseData.response!!.run {
-            AuthenticatedUserInfo(
-                userId = id,
-                name = name,
-                avatar = GroupMeImage(image_url)
-            )
-        }
+        return AuthenticatedUserInfo(responseData.response!!)
     }
 
 
-    fun getChats(): Flow<Chat> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun getChats(): Flow<Chat> = flow {
+        getGroupChats().collect { emit(it) }
+        getDirectChats().collect { emit(it) }
     }
 
     fun getDirectChats(): Flow<DirectChat> {
