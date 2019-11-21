@@ -1,6 +1,9 @@
 package net.benwoodworth.groupme.client.chat
 
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.json
 import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.client.media.GroupMeImage
 import net.benwoodworth.groupme.client.media.GroupMeVideo

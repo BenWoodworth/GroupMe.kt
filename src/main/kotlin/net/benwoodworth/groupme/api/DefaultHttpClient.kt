@@ -7,8 +7,7 @@ import java.net.URLEncoder
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-internal actual class DefaultHttpClient actual constructor(
-) : HttpClient {
+internal class DefaultHttpClient : HttpClient {
     override suspend fun sendRequest(
         method: HttpMethod,
         url: String,
