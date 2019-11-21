@@ -3,6 +3,9 @@ package net.benwoodworth.groupme.client.bot
 open class Bot(
     val botId: String
 ) {
+    /**
+     * Compares [Bot]s by [botId].
+     */
     final override fun equals(other: Any?): Boolean {
         return other is Bot && other.botId == botId
     }
