@@ -106,6 +106,21 @@ class GroupMeClient internal constructor(
 
     suspend fun Message.unlike() = unlikeMessage()
 
+
+    suspend fun createBot(
+        name: String? = null,
+        avatar: GroupMeImage? = null,
+        callbackUrl: String? = null
+    ): BotInfo {
+        TODO()
+    }
+
+    suspend fun deleteBot(bot: Bot) {
+        TODO()
+    }
+
+    suspend fun Bot.delete() = deleteBot(this)
+
     suspend fun getBots(): Flow<BotInfo> {
         TODO()
     }
