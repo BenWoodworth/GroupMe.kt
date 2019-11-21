@@ -35,7 +35,7 @@ internal class DirectMessagingScopeImpl(
 ) : DirectMessagingScope {
     private fun HttpClient.Response.toSentMessage(): DirectSentMessageInfo {
         val responseJson = json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), data)
-        return DirectSentMessageInfoImpl(responseJson.response!!.getObject("direct_message"), chat)
+        return DirectSentMessageInfo(responseJson.response!!.getObject("direct_message"), chat)
     }
 
     override suspend fun sendMessage(message: Message): DirectSentMessageInfo {
@@ -90,7 +90,7 @@ internal class DirectMessagingScopeImpl(
         )
 
         return responseJson.response!!.messages
-            .map { DirectSentMessageInfoImpl(it, chat) }
+            .map { DirectSentMessageInfo(it, chat) }
     }
 
     override fun getMessages(): Flow<DirectSentMessageInfo> = flow {

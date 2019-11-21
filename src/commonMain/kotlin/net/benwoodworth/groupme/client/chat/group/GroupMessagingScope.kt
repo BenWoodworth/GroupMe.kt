@@ -34,7 +34,7 @@ internal class GroupMessagingScopeImpl(
 ) : GroupMessagingScope {
     private fun HttpClient.Response.toSentMessage(): GroupSentMessageInfo {
         val responseJson = json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), data)
-        return GroupSentMessageInfoImpl(responseJson.response!!.getObject("message"), chat)
+        return GroupSentMessageInfo(responseJson.response!!.getObject("message"), chat)
     }
 
     override suspend fun sendMessage(message: Message): GroupSentMessageInfo {
@@ -85,7 +85,7 @@ internal class GroupMessagingScopeImpl(
         )
 
         return responseJson.response!!.messages
-            .map { GroupSentMessageInfoImpl(it, chat) }
+            .map { GroupSentMessageInfo(it, chat) }
     }
 
     override fun getMessages(): Flow<GroupSentMessageInfo> = flow {

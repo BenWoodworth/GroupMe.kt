@@ -1,5 +1,5 @@
 package net.benwoodworth.groupme.client.chat
 
-interface SentMessage {
-    val messageId: String
+abstract class SentMessage internal constructor() {
+    abstract val messageId: String
 }
