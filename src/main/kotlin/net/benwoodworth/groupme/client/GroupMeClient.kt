@@ -1,8 +1,11 @@
 package net.benwoodworth.groupme.client
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.list
 import net.benwoodworth.groupme.GroupMeScope
 import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.UserInfo
@@ -121,12 +124,41 @@ class GroupMeClient internal constructor(
 
     suspend fun Bot.delete() = deleteBot(this)
 
-    suspend fun getBots(): Flow<BotInfo> {
-        TODO()
+    fun getBots(): Flow<BotInfo> = flow {
+        @Serializable
+        class ResponseBot(
+            val bot_id: String,
+            val name: String,
+            val group_id: String,
+            val avatar_url: String?,
+            val callback_url: String?
+        )
+
+        val response = httpClient.sendApiV3Request(
+            method = HttpMethod.Get,
+            endpoint = "/users/me"
+        )
+
+        val responseData = json.parse(
+            deserializer = ResponseEnvelope.serializer(ResponseBot.serializer().list),
+            string = response.data
+        )
+
+        responseData.response!!.forEach {
+            emit(
+                BotInfo(
+                    botId = it.bot_id,
+                    name = it.name,
+                    group = GroupChat(it.group_id),
+                    avatar = it.avatar_url?.let { url -> GroupMeImage(url) },
+                    callbackUrl = it.callback_url
+                )
+            )
+        }
     }
 
     suspend fun getBotInfo(bot: Bot): BotInfo {
-        TODO()
+        return getBots().first { it == bot }
     }
 
     suspend fun Bot.getInfo() = getBotInfo(this)
