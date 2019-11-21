@@ -11,13 +11,13 @@ internal actual class DefaultHttpClient actual constructor() : HttpClient {
         headers: Map<String, String?>,
         params: Map<String, String?>,
         body: String?
-    ): HttpClient.Response {
+    ): HttpResponse {
         return suspendCoroutine { continuation ->
             val request = XMLHttpRequest()
 
             request.onload = {
                 continuation.resume(
-                    HttpClient.Response(
+                    HttpResponse(
                         request.status.toInt(),
                         request.statusText,
                         request.responseText

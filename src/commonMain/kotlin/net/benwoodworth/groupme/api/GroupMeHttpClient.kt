@@ -13,7 +13,7 @@ internal class GroupMeHttpClient(
         headers: Map<String, String?>,
         params: Map<String, String?>,
         body: String?
-    ): HttpClient.Response {
+    ): HttpResponse {
         return httpClient.sendRequest(
             method = method,
             url = url,
@@ -29,7 +29,7 @@ internal class GroupMeHttpClient(
         headers: Map<String, String?> = emptyMap(),
         params: Map<String, String?> = emptyMap(),
         body: String? = null
-    ): HttpClient.Response {
+    ): HttpResponse {
         return sendRequest(
             method = method,
             url = "$apiV3UrlBase$endpoint",

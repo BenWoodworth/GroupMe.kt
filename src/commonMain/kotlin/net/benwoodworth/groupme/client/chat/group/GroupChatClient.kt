@@ -4,8 +4,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
-import net.benwoodworth.groupme.api.HttpClient
 import net.benwoodworth.groupme.api.HttpMethod
+import net.benwoodworth.groupme.api.HttpResponse
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.GroupMeClient
 import net.benwoodworth.groupme.client.chat.ChatClient
@@ -16,7 +16,7 @@ open class GroupChatClient internal constructor(
     override val chat: GroupChat,
     groupMeClient: GroupMeClient
 ): ChatClient(groupMeClient) {
-    private fun HttpClient.Response.toSentMessage(): GroupSentMessageInfo {
+    private fun HttpResponse.toSentMessage(): GroupSentMessageInfo {
         val responseJson = groupMeClient.json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), data)
         return GroupSentMessageInfo(responseJson.response!!.getObject("message"), chat)
     }

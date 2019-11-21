@@ -15,7 +15,7 @@ internal actual class DefaultHttpClient actual constructor(
         headers: Map<String, String?>,
         params: Map<String, String?>,
         body: String?
-    ): HttpClient.Response {
+    ): HttpResponse {
         return suspendCoroutine { continuation ->
             val paramsUrl = params
                 .filterValues { it != null }
@@ -48,7 +48,7 @@ internal actual class DefaultHttpClient actual constructor(
             }
 
             continuation.resume(
-                HttpClient.Response(
+                HttpResponse(
                     code = connection.responseCode,
                     message = connection.responseMessage,
                     data = responseData?.toString(Charsets.UTF_8) ?: ""
