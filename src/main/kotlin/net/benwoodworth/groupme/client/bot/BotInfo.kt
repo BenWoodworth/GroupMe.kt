@@ -9,4 +9,8 @@ class BotInfo internal constructor(
     val group: GroupChat,
     val avatar: GroupMeImage,
     val callbackUrl: String
-) : Bot(botId)
+) : Bot(botId) {
+    override fun toString(): String {
+        return "Bot($name)"
+    }
+}
