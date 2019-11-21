@@ -100,7 +100,8 @@ class GroupMeClient internal constructor(
                 endpoint = "/groups",
                 params = mapOf(
                     "page" to page.toString(),
-                    "per_page" to "100"
+                    "per_page" to "100",
+                    "omit" to "memberships"
                 )
             )
 
