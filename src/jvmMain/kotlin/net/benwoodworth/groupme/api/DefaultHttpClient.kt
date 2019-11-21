@@ -27,7 +27,7 @@ internal actual class DefaultHttpClient actual constructor(
 
             val connection = URL(paramsUrl).openConnection() as HttpURLConnection
 
-            connection.requestMethod = method.methodName
+            connection.requestMethod = method.method
             connection.doInput = true
 
             for ((key, value) in headers) {

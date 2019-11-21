@@ -1,7 +1,9 @@
 package net.benwoodworth.groupme.api
 
-enum class HttpMethod(val methodName: String) {
-    Get("GET"),
-    Post("POST"),
-    Delete("DELETE"),
+class HttpMethod(val method: String) {
+    companion object {
+        val Get = HttpMethod("GET")
+        val Post = HttpMethod("POST")
+        val Delete = HttpMethod("DELETE")
+    }
 }
