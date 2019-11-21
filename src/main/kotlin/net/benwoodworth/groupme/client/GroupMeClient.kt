@@ -58,8 +58,39 @@ class GroupMeClient internal constructor(
         getDirectChats().collect { emit(it) }
     }
 
-    fun getDirectChats(): Flow<DirectChat> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun getDirectChats(): Flow<DirectChat> = flow {
+        @Serializable
+        class ResponseChat(
+            val other_user: JsonObject
+        )
+
+        var page = 1
+        do {
+            val response = httpClient.sendApiV3Request(
+                method = HttpMethod.Get,
+                endpoint = "/chats",
+                params = mapOf(
+                    "page" to page.toString(),
+                    "per_page" to "100"
+                )
+            )
+
+            val responseData = json.parse(
+                deserializer = ResponseEnvelope.serializer(ResponseChat.serializer().list),
+                string = response.data
+            )
+
+            responseData.response!!.forEach {
+                emit(
+                    DirectChatInfo(
+                        fromUser = authenticatedUser,
+                        toUser = UserInfo(it.other_user)
+                    )
+                )
+            }
+
+            page++
+        } while (responseData.response!!.any())
     }
 
     fun getGroupChats(): Flow<GroupChat> {
