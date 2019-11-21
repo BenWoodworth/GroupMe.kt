@@ -9,6 +9,8 @@ import net.benwoodworth.groupme.UserInfo
 import net.benwoodworth.groupme.api.GroupMeHttpClient
 import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
+import net.benwoodworth.groupme.client.bot.Bot
+import net.benwoodworth.groupme.client.bot.BotInfo
 import net.benwoodworth.groupme.client.chat.Chat
 import net.benwoodworth.groupme.client.chat.ChatClient
 import net.benwoodworth.groupme.client.chat.Message
@@ -103,4 +105,29 @@ class GroupMeClient internal constructor(
     }
 
     suspend fun Message.unlike() = unlikeMessage()
+
+    suspend fun getBots(): Flow<BotInfo> {
+        TODO()
+    }
+
+    suspend fun getBotInfo(bot: Bot): BotInfo {
+        TODO()
+    }
+
+    suspend fun Bot.getInfo() = getBotInfo(this)
+
+    suspend fun setBotInfo(
+        bot: Bot,
+        name: String? = null,
+        avatar: GroupMeImage? = null,
+        callbackUrl: String? = null
+    ): BotInfo {
+        TODO()
+    }
+
+    suspend fun Bot.setInfo(
+        name: String? = null,
+        avatar: GroupMeImage? = null,
+        callbackUrl: String? = null
+    ) = setBotInfo(this, name, avatar, callbackUrl)
 }
