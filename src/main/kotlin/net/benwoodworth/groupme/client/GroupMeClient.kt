@@ -136,7 +136,7 @@ class GroupMeClient internal constructor(
 
         val response = httpClient.sendApiV3Request(
             method = HttpMethod.Get,
-            endpoint = "/users/me"
+            endpoint = "/bots"
         )
 
         val responseData = json.parse(
