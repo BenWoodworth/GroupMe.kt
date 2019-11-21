@@ -60,11 +60,6 @@ class GroupMeClient internal constructor(
     }
 
     fun getDirectChats(): Flow<DirectChatInfo> = flow {
-        @Serializable
-        class ResponseChat(
-            val other_user: JsonObject
-        )
-
         var page = 1
         do {
             val response = httpClient.sendApiV3Request(
@@ -77,17 +72,12 @@ class GroupMeClient internal constructor(
             )
 
             val responseData = json.parse(
-                deserializer = ResponseEnvelope.serializer(ResponseChat.serializer().list),
+                deserializer = ResponseEnvelope.serializer(JsonObject.serializer().list),
                 string = response.data
             )
 
             responseData.response!!.forEach {
-                emit(
-                    DirectChatInfo(
-                        fromUser = authenticatedUser,
-                        toUser = UserInfo(it.other_user)
-                    )
-                )
+                emit(DirectChatInfo(authenticatedUser, it))
             }
 
             page++
