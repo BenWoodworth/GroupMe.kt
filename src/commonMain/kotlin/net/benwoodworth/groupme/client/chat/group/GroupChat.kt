@@ -2,16 +2,10 @@ package net.benwoodworth.groupme.client.chat.group
 
 import net.benwoodworth.groupme.client.chat.Chat
 
-interface GroupChat : Chat
-
-internal class GroupChatImpl(
+open class GroupChat(
     override val chatId: String
-): GroupChat, Chat by Chat(chatId) {
+) : Chat() {
     override fun toString(): String {
         return "GroupChat($chatId)"
     }
-}
-
-fun GroupChat(chatId: String): GroupChat {
-    return GroupChatImpl(chatId)
 }
