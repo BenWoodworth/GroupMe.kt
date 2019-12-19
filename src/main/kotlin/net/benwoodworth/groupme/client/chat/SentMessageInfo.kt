@@ -2,6 +2,8 @@ package net.benwoodworth.groupme.client.chat
 
 import kotlinx.serialization.json.JsonObject
 import net.benwoodworth.groupme.User
+import net.benwoodworth.groupme.UserInfo
+import net.benwoodworth.groupme.client.media.GroupMeImage
 
 abstract class SentMessageInfo internal constructor(
     val messageJson: JsonObject
@@ -11,8 +13,12 @@ abstract class SentMessageInfo internal constructor(
     override val messageId: String
         get() = messageJson.getPrimitive("id").content
 
-    val sender: User
-        get() = User(messageJson.getPrimitive("user_id").content)
+    val sender: UserInfo
+        get() = UserInfo(
+            userId = messageJson.getPrimitive("sender_id").content,
+            name = messageJson.getPrimitive("name").content,
+            avatar = messageJson.getPrimitive("avatar_url").contentOrNull?.let { GroupMeImage(it) }
+        )
 
     val text: String?
         get() = messageJson.getPrimitive("text").contentOrNull
@@ -24,4 +30,12 @@ abstract class SentMessageInfo internal constructor(
 
     val sourceGuid: String
         get() = messageJson.getPrimitive("source_guid").content
+
+    val likes: List<User>
+        get() = messageJson.getArray("favorited_by").map {
+            User(it.primitive.content)
+        }
+
+    val created: Long
+        get() = messageJson.getPrimitive("created_at").long
 }
