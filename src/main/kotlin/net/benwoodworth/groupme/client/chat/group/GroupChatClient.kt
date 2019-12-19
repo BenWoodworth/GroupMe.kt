@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import net.benwoodworth.groupme.UserInfo
 import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.HttpResponse
 import net.benwoodworth.groupme.api.ResponseEnvelope
@@ -11,6 +12,7 @@ import net.benwoodworth.groupme.client.GroupMeClient
 import net.benwoodworth.groupme.client.chat.ChatClient
 import net.benwoodworth.groupme.client.chat.Message
 import net.benwoodworth.groupme.client.chat.SentMessage
+import net.benwoodworth.groupme.client.media.GroupMeImage
 
 open class GroupChatClient internal constructor(
     override val chat: GroupChat,
@@ -117,6 +119,28 @@ open class GroupChatClient internal constructor(
 
             messages = fetchMessages(afterId = lastMessage.messageId)
             lastMessage = messages.lastOrNull()
+        }
+    }
+
+    suspend fun getMembers(): List<UserInfo> {
+        val response = groupMeClient.httpClient.sendApiV3Request(
+            method = HttpMethod.Get,
+            endpoint = "/groups/${chat.chatId}"
+        )
+
+        val responseData = groupMeClient.json.parse(
+            deserializer = ResponseEnvelope.serializer(JsonObject.serializer()),
+            string = response.data
+        )
+
+        val members = responseData.response!!.getArray("members")
+
+        return members.map {
+            UserInfo(
+                userId = it.jsonObject["user_id"]!!.primitive.content,
+                name = it.jsonObject["name"]!!.primitive.content,
+                avatar = it.jsonObject["image_url"]!!.primitive.content.let { GroupMeImage(it) }
+            )
         }
     }
 }
