@@ -11,7 +11,13 @@ object GroupMe {
         apiToken: String,
         httpClient: HttpClient = DefaultHttpClient()
     ): GroupMeClient {
-        val groupMeHttpClient = GroupMeHttpClient(httpClient, apiToken, "https://api.groupme.com/v3")
+        val groupMeHttpClient = GroupMeHttpClient(
+            httpClient,
+            apiToken,
+            "https://api.groupme.com/v3",
+            "https://v2.groupme.com"
+        )
+
         val json = Json(JsonConfiguration.Stable.copy(strictMode = false))
 
         @Serializable
