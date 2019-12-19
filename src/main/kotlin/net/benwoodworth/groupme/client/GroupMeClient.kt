@@ -34,7 +34,23 @@ class GroupMeClient internal constructor(
     internal val json: Json
 ) {
     suspend fun getUserInfo(user: User): UserInfo {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val response = httpClient.sendApiV2Request(
+            method = HttpMethod.Get,
+            endpoint = "/users/${user.userId}"
+        )
+
+        val responseData = json.parse(
+            deserializer = ResponseEnvelope.serializer(JsonObject.serializer()),
+            string = response.data
+        )
+
+        val userData = responseData.response!!.getObject("user")
+
+        return UserInfo(
+            userId = userData["user_id"]!!.primitive.content,
+            name = userData["name"]!!.primitive.content,
+            avatar = userData["avatar_url"]!!.primitive.content?.let { GroupMeImage(it) }
+        )
     }
 
     suspend fun User.getInfo() = getUserInfo(this)
