@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import net.benwoodworth.groupme.UserInfo
 import net.benwoodworth.groupme.api.HttpMethod
-import net.benwoodworth.groupme.api.HttpResponse
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.GroupMeClient
 import net.benwoodworth.groupme.client.chat.ChatClient
@@ -18,11 +17,6 @@ open class GroupChatClient internal constructor(
     override val chat: GroupChat,
     groupMeClient: GroupMeClient
 ): ChatClient(groupMeClient) {
-    private fun HttpResponse.toSentMessage(): GroupSentMessageInfo {
-        val responseJson = groupMeClient.json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), data)
-        return GroupSentMessageInfo(responseJson.response!!.getObject("message"), chat)
-    }
-
     override suspend fun sendMessage(message: Message): GroupSentMessageInfo {
         @Serializable
         class Request(val message: JsonObject)
@@ -33,7 +27,9 @@ open class GroupChatClient internal constructor(
             body = groupMeClient.json.stringify(Request.serializer(), Request(message.messageJson))
         )
 
-        return response.toSentMessage()
+        val responseJson = groupMeClient.json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
+
+        return responseJson.response!!.getObject("message").toGroupSentMessageInfo(chat)
     }
 
     override suspend fun Message.send(): GroupSentMessageInfo {
@@ -71,7 +67,7 @@ open class GroupChatClient internal constructor(
         )
 
         return responseJson.response!!.messages
-            .map { GroupSentMessageInfo(it, chat) }
+            .map { it.toGroupSentMessageInfo(chat) }
     }
 
     override fun getMessages(): Flow<GroupSentMessageInfo> = flow {

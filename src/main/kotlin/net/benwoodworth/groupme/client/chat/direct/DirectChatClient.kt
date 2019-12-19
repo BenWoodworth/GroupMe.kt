@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import net.benwoodworth.groupme.api.HttpMethod
-import net.benwoodworth.groupme.api.HttpResponse
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.GroupMeClient
 import net.benwoodworth.groupme.client.chat.ChatClient
@@ -17,12 +16,6 @@ class DirectChatClient internal constructor(
     override val chat: DirectChat,
     groupMeClient: GroupMeClient
 ) : ChatClient(groupMeClient) {
-
-    private fun HttpResponse.toSentMessage(): DirectSentMessageInfo {
-        val responseJson = groupMeClient.json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), data)
-        return DirectSentMessageInfo(responseJson.response!!.getObject("direct_message"), chat)
-    }
-
     override suspend fun sendMessage(message: Message): DirectSentMessageInfo {
         @Serializable
         class Request(val direct_message: JsonObject)
@@ -36,7 +29,10 @@ class DirectChatClient internal constructor(
             body = groupMeClient.json.stringify(Request.serializer(), Request(appendedMessageJson))
         )
 
-        return response.toSentMessage()
+        return groupMeClient.json
+            .parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
+            .response!!.getObject("direct_message")
+            .toDirectSentMessageInfo(chat)
     }
 
     override suspend fun Message.send(): DirectSentMessageInfo {
@@ -75,7 +71,7 @@ class DirectChatClient internal constructor(
         )
 
         return responseJson.response!!.messages
-            .map { DirectSentMessageInfo(it, chat) }
+            .map { it.toDirectSentMessageInfo(chat) }
     }
 
     override fun getMessages(): Flow<DirectSentMessageInfo> = flow {

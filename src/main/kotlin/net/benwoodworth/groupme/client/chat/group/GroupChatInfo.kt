@@ -19,8 +19,8 @@ class GroupChatInfo internal constructor(
         val count: Int
             get() = messagesJson.getPrimitive("count").int
 
-        val preview: GroupSentMessageInfo
-            get() = GroupSentMessageInfo(messagesJson.getObject("preview"), GroupChat(chatId))
+        val preview: GroupSentMessageInfo = messagesJson.getObject("preview")
+            .toGroupSentMessageInfo(GroupChat(chatId))
     }
 
     override fun toString(): String {
