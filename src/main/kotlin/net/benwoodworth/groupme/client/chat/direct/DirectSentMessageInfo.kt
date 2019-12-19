@@ -12,7 +12,7 @@ interface DirectSentMessageInfo : SentMessageInfo {
 }
 
 internal fun DirectSentMessageInfo(
-    messageJson: JsonObject,
+    json: JsonObject,
     messageId: String,
     chat: DirectChat,
     sender: UserInfo,
@@ -22,7 +22,7 @@ internal fun DirectSentMessageInfo(
     likes: List<User>,
     created: Long
 ): DirectSentMessageInfo = object : DirectSentMessageInfo, SentMessageInfo by SentMessageInfo(
-    messageJson = messageJson,
+    json = json,
     messageId = messageId,
     chat = chat,
     sender = sender,
@@ -36,7 +36,7 @@ internal fun DirectSentMessageInfo(
 }
 
 internal fun JsonObject.toDirectSentMessageInfo(chat: DirectChat) = DirectSentMessageInfo(
-    messageJson = this,
+    json = this,
     messageId = getPrimitive("id").content,
     chat = chat,
     text = getPrimitive("text").contentOrNull,

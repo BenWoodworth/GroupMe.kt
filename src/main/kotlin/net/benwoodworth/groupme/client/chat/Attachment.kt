@@ -9,23 +9,23 @@ import net.benwoodworth.groupme.client.media.GroupMeImage
 import net.benwoodworth.groupme.client.media.GroupMeVideo
 
 sealed class Attachment {
-    abstract val attachmentJson: JsonObject
+    abstract val json: JsonObject
 
     val type: String by lazy {
-        attachmentJson["type"]!!.primitive.content
+        json["type"]!!.primitive.content
     }
 
     internal class Unknown(
-        override val attachmentJson: JsonObject
+        override val json: JsonObject
     ) : Attachment()
 
     class Image private constructor(
-        override val attachmentJson: JsonObject,
+        override val json: JsonObject,
         val image: GroupMeImage
     ) : Attachment() {
-        internal constructor(attachmentJson: JsonObject) : this(
-            attachmentJson,
-            GroupMeImage(attachmentJson["url"]!!.primitive.content)
+        internal constructor(json: JsonObject) : this(
+            json,
+            GroupMeImage(json["url"]!!.primitive.content)
         )
 
         constructor(image: GroupMeImage) : this(
@@ -37,14 +37,14 @@ sealed class Attachment {
     }
 
     class Video private constructor(
-        override val attachmentJson: JsonObject,
+        override val json: JsonObject,
         val video: GroupMeVideo
     ) : Attachment() {
-        internal constructor(attachmentJson: JsonObject) : this(
-            attachmentJson,
+        internal constructor(json: JsonObject) : this(
+            json,
             GroupMeVideo(
-                attachmentJson["url"]!!.primitive.content,
-                GroupMeImage(attachmentJson["preview_url"]!!.primitive.content)
+                json["url"]!!.primitive.content,
+                GroupMeImage(json["preview_url"]!!.primitive.content)
             )
         )
 
@@ -58,16 +58,16 @@ sealed class Attachment {
     }
 
     class Location private constructor(
-        override val attachmentJson: JsonObject,
+        override val json: JsonObject,
         val name: String,
         val latitude: Double,
         val longitude: Double
     ) : Attachment() {
-        internal constructor(attachmentJson: JsonObject) : this(
-            attachmentJson,
-            attachmentJson["name"]!!.primitive.content,
-            attachmentJson["lat"]!!.primitive.double,
-            attachmentJson["lng"]!!.primitive.double
+        internal constructor(json: JsonObject) : this(
+            json,
+            json["name"]!!.primitive.content,
+            json["lat"]!!.primitive.double,
+            json["lng"]!!.primitive.double
         )
 
         constructor(name: String, latitude: Double, longitude: Double) : this(
@@ -82,12 +82,12 @@ sealed class Attachment {
 
     @Deprecated("Deprecated in the GroupMe API.")
     class Split private constructor(
-        override val attachmentJson: JsonObject,
+        override val json: JsonObject,
         val token: String
     ) : Attachment() {
-        internal constructor(attachmentJson: JsonObject) : this(
-            attachmentJson,
-            attachmentJson["token"]!!.primitive.content
+        internal constructor(json: JsonObject) : this(
+            json,
+            json["token"]!!.primitive.content
         )
 
         constructor(token: String) : this(
@@ -99,14 +99,14 @@ sealed class Attachment {
     }
 
     class Emoji private constructor(
-        override val attachmentJson: JsonObject,
+        override val json: JsonObject,
         val placeholder: Char,
         val charmap: List<CharMap>
     ) : Attachment() {
-        internal constructor(attachmentJson: JsonObject) : this(
-            attachmentJson,
-            attachmentJson["placeholder"]!!.primitive.content.single(),
-            attachmentJson["charmap"]!!.jsonArray.toCharMap()
+        internal constructor(json: JsonObject) : this(
+            json,
+            json["placeholder"]!!.primitive.content.single(),
+            json["charmap"]!!.jsonArray.toCharMap()
         )
 
         constructor(charmap: List<CharMap>) : this(
@@ -133,12 +133,12 @@ sealed class Attachment {
     }
 
     class Mentions private constructor(
-        override val attachmentJson: JsonObject,
+        override val json: JsonObject,
         val mentions: List<Mention>
     ) : Attachment() {
-        internal constructor(attachmentJson: JsonObject) : this(
-            attachmentJson,
-            attachmentJson.toMentions()
+        internal constructor(json: JsonObject) : this(
+            json,
+            json.toMentions()
         )
 
         constructor(mentions: List<Mention>) : this(
@@ -167,14 +167,14 @@ sealed class Attachment {
     }
 }
 
-fun Attachment(attachmentJson: JsonObject): Attachment {
-    return when (attachmentJson["type"]!!.primitive.content) {
-        "image" -> Attachment.Image(attachmentJson)
-        "video" -> Attachment.Video(attachmentJson)
-        "location" -> Attachment.Location(attachmentJson)
-        "split" -> Attachment.Split(attachmentJson)
-        "emoji" -> Attachment.Emoji(attachmentJson)
-        "mentions" -> Attachment.Mentions(attachmentJson)
-        else -> Attachment.Unknown(attachmentJson)
+fun Attachment(json: JsonObject): Attachment {
+    return when (json["type"]!!.primitive.content) {
+        "image" -> Attachment.Image(json)
+        "video" -> Attachment.Video(json)
+        "location" -> Attachment.Location(json)
+        "split" -> Attachment.Split(json)
+        "emoji" -> Attachment.Emoji(json)
+        "mentions" -> Attachment.Mentions(json)
+        else -> Attachment.Unknown(json)
     }
 }

@@ -3,23 +3,23 @@ package net.benwoodworth.groupme.client.chat.group
 import kotlinx.serialization.json.JsonObject
 
 class GroupChatInfo internal constructor(
-    val chatJson: JsonObject
+    val json: JsonObject
 ): GroupChat(
-    chatId = chatJson.getPrimitive("id").content
+    chatId = json.getPrimitive("id").content
 ) {
     val name: String
-        get() = chatJson.getPrimitive("name").content
+        get() = json.getPrimitive("name").content
 
     val messages: Messages = Messages()
 
     inner class Messages internal constructor() {
-        private val messagesJson: JsonObject
-            get() = chatJson.getObject("messages")
+        private val json: JsonObject
+            get() = this@GroupChatInfo.json.getObject("messages")
 
         val count: Int
-            get() = messagesJson.getPrimitive("count").int
+            get() = json.getPrimitive("count").int
 
-        val preview: GroupSentMessageInfo = messagesJson.getObject("preview")
+        val preview: GroupSentMessageInfo = json.getObject("preview")
             .toGroupSentMessageInfo(GroupChat(chatId))
     }
 

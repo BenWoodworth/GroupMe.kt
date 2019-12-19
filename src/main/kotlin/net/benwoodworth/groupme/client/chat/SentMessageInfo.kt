@@ -5,7 +5,7 @@ import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.UserInfo
 
 interface SentMessageInfo : SentMessage {
-    val messageJson: JsonObject
+    val json: JsonObject
     val chat: Chat
     val sender: UserInfo
     val text: String?
@@ -16,7 +16,7 @@ interface SentMessageInfo : SentMessage {
 }
 
 internal fun SentMessageInfo(
-    messageJson: JsonObject,
+    json: JsonObject,
     messageId: String,
     chat: Chat,
     sender: UserInfo,
@@ -28,7 +28,7 @@ internal fun SentMessageInfo(
 ): SentMessageInfo = object : SentMessageInfo, SentMessage by SentMessage(
     messageId = messageId
 ) {
-    override val messageJson: JsonObject get() = messageJson
+    override val json: JsonObject get() = json
     override val chat: Chat get() = chat
     override val sender: UserInfo get() = sender
     override val text: String? get() = text

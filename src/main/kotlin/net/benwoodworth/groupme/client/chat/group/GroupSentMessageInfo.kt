@@ -12,7 +12,7 @@ interface GroupSentMessageInfo : SentMessageInfo {
 }
 
 internal fun GroupSentMessageInfo(
-    messageJson: JsonObject,
+    json: JsonObject,
     messageId: String,
     chat: GroupChat,
     sender: UserInfo,
@@ -22,7 +22,7 @@ internal fun GroupSentMessageInfo(
     likes: List<User>,
     created: Long
 ): GroupSentMessageInfo = object : GroupSentMessageInfo, SentMessageInfo by SentMessageInfo(
-    messageJson = messageJson,
+    json = json,
     messageId = messageId,
     chat = chat,
     sender = sender,
@@ -36,7 +36,7 @@ internal fun GroupSentMessageInfo(
 }
 
 internal fun JsonObject.toGroupSentMessageInfo(chat: GroupChat) = GroupSentMessageInfo(
-    messageJson = this,
+    json = this,
     messageId = getPrimitive("id").content,
     chat = chat,
     text = getPrimitive("text").contentOrNull,

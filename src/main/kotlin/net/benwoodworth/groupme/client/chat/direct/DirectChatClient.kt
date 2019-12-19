@@ -21,12 +21,12 @@ class DirectChatClient internal constructor(
         class Request(val direct_message: JsonObject)
 
         val newEntries = mapOf("recipient_id" to JsonPrimitive(chat.toUser.userId))
-        val appendedMessageJson = JsonObject(message.messageJson + newEntries)
+        val appendedjson = JsonObject(message.json + newEntries)
 
         val response = groupMeClient.httpClient.sendApiV3Request(
             method = HttpMethod.Post,
             endpoint = "/direct_messages",
-            body = groupMeClient.json.stringify(Request.serializer(), Request(appendedMessageJson))
+            body = groupMeClient.json.stringify(Request.serializer(), Request(appendedjson))
         )
 
         return groupMeClient.json

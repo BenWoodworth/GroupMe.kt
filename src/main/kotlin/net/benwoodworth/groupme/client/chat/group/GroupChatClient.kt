@@ -24,7 +24,7 @@ open class GroupChatClient internal constructor(
         val response = groupMeClient.httpClient.sendApiV3Request(
             method = HttpMethod.Post,
             endpoint = "/groups/${chat.chatId}/messages",
-            body = groupMeClient.json.stringify(Request.serializer(), Request(message.messageJson))
+            body = groupMeClient.json.stringify(Request.serializer(), Request(message.json))
         )
 
         val responseJson = groupMeClient.json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
