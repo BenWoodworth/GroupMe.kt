@@ -3,7 +3,8 @@ package net.benwoodworth.groupme.api
 internal class GroupMeHttpClient(
     private val httpClient: HttpClient,
     apiKey: String,
-    private val apiV3UrlBase: String
+    private val apiV3UrlBase: String,
+    private val apiV2UrlBase: String
 ) : HttpClient by httpClient {
     private val accessTokenHeader = "X-ACCESS-TOKEN" to apiKey
 
@@ -33,6 +34,22 @@ internal class GroupMeHttpClient(
         return sendRequest(
             method = method,
             url = "$apiV3UrlBase$endpoint",
+            headers = headers,
+            params = params,
+            body = body
+        )
+    }
+
+    suspend fun sendApiV2Request(
+        method: HttpMethod,
+        endpoint: String,
+        headers: Map<String, String?> = emptyMap(),
+        params: Map<String, String?> = emptyMap(),
+        body: String? = null
+    ): HttpResponse {
+        return sendRequest(
+            method = method,
+            url = "$apiV2UrlBase$endpoint",
             headers = headers,
             params = params,
             body = body
