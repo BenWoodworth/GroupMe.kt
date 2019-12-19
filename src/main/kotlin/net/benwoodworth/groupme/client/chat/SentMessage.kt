@@ -1,24 +1,30 @@
 package net.benwoodworth.groupme.client.chat
 
-abstract class SentMessage internal constructor() {
-    abstract val messageId: String
+interface SentMessage {
+    val messageId: String
 
     /**
      * Compares [SentMessage]s by [messageId].
      */
-    final override fun equals(other: Any?): Boolean {
+    override fun equals(other: Any?): Boolean
+
+    override fun hashCode(): Int
+
+    override fun toString(): String
+}
+
+fun SentMessage(messageId: String): SentMessage = object : SentMessage {
+    override val messageId: String = messageId
+
+    override fun equals(other: Any?): Boolean {
         return other is SentMessage && other.messageId == messageId
     }
 
-    final override fun hashCode(): Int {
+    override fun hashCode(): Int {
         return messageId.hashCode()
     }
 
     override fun toString(): String {
         return "SentMessage($messageId)"
     }
-}
-
-fun SentMessage(messageId: String): SentMessage = object : SentMessage() {
-    override val messageId: String = messageId
 }

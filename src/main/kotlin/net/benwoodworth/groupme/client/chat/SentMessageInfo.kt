@@ -7,11 +7,10 @@ import net.benwoodworth.groupme.client.media.GroupMeImage
 
 abstract class SentMessageInfo internal constructor(
     val messageJson: JsonObject
-) : SentMessage() {
+) : SentMessage by SentMessage(
+    messageId = messageJson.getPrimitive("id").content
+) {
     abstract val chat: Chat
-
-    override val messageId: String
-        get() = messageJson.getPrimitive("id").content
 
     val sender: UserInfo
         get() = UserInfo(
