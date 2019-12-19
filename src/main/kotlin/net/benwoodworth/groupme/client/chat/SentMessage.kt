@@ -18,3 +18,7 @@ abstract class SentMessage internal constructor() {
         return "SentMessage($messageId)"
     }
 }
+
+fun SentMessage(messageId: String): SentMessage = object : SentMessage() {
+    override val messageId: String = messageId
+}
