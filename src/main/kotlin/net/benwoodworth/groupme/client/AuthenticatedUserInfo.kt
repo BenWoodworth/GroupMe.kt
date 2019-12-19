@@ -6,7 +6,7 @@ import net.benwoodworth.groupme.client.media.GroupMeImage
 
 class AuthenticatedUserInfo internal constructor(
     val json: JsonObject
-) : UserInfo(
+) : UserInfo by UserInfo(
     userId = json.getPrimitive("id").content,
     name = json.getPrimitive("name").content,
     avatar = json.getPrimitive("avatar").contentOrNull?.let { GroupMeImage(it) }
