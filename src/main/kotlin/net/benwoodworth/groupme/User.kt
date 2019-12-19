@@ -1,16 +1,27 @@
 package net.benwoodworth.groupme
 
-open class User(
+interface User {
     val userId: String
-) {
+
     /**
      * Compares [User]s by [userId].
      */
-    final override fun equals(other: Any?): Boolean {
+    override fun equals(other: Any?): Boolean
+
+    override fun hashCode(): Int
+
+    override fun toString(): String
+}
+
+fun User(userId: String): User = object : User {
+    override val userId: String
+        get() = userId
+
+    override fun equals(other: Any?): Boolean {
         return other is User && userId == other.userId
     }
 
-    final override fun hashCode(): Int {
+    override fun hashCode(): Int {
         return userId.hashCode()
     }
 
