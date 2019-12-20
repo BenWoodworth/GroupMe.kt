@@ -32,7 +32,7 @@ class DirectChatContext internal constructor(
         return client.json
             .parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
             .response!!.getObject("direct_message")
-            .toDirectSentMessageInfo(chat)
+            .let { DirectSentMessageInfo(chat, it) }
     }
 
     override suspend fun Message.send(): DirectSentMessageInfo {
@@ -71,7 +71,7 @@ class DirectChatContext internal constructor(
         )
 
         return responseJson.response!!.messages
-            .map { it.toDirectSentMessageInfo(chat) }
+            .map { DirectSentMessageInfo(chat, it) }
     }
 
     override fun getMessages(): Flow<DirectSentMessageInfo> = flow {

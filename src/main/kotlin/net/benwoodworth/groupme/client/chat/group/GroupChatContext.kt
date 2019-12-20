@@ -29,7 +29,8 @@ open class GroupChatContext internal constructor(
 
         val responseJson = client.json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
 
-        return responseJson.response!!.getObject("message").toGroupSentMessageInfo(chat)
+        return responseJson.response!!.getObject("message")
+            .let { GroupSentMessageInfo(chat, it) }
     }
 
     override suspend fun Message.send(): GroupSentMessageInfo {
@@ -67,7 +68,7 @@ open class GroupChatContext internal constructor(
         )
 
         return responseJson.response!!.messages
-            .map { it.toGroupSentMessageInfo(chat) }
+            .map { GroupSentMessageInfo(chat, it) }
     }
 
     override fun getMessages(): Flow<GroupSentMessageInfo> = flow {
