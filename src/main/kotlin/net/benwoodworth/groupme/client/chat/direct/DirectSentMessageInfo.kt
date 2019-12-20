@@ -32,7 +32,7 @@ internal fun DirectSentMessageInfo(
     likes = likes,
     created = created
 ) {
-    override val chat: DirectChat get() = chat
+    override val chat: DirectChat = chat
 }
 
 internal fun JsonObject.toDirectSentMessageInfo(chat: DirectChat) = DirectSentMessageInfo(

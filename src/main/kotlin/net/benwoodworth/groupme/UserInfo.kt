@@ -12,11 +12,8 @@ internal fun UserInfo(
     name: String,
     avatar: GroupMeImage?
 ): UserInfo = object : UserInfo, User by User(userId) {
-    override val name: String
-        get() = name
-
-    override val avatar: GroupMeImage?
-        get() = avatar
+    override val name: String = name
+    override val avatar: GroupMeImage? = avatar
 
     override fun toString(): String {
         return "User($name)"

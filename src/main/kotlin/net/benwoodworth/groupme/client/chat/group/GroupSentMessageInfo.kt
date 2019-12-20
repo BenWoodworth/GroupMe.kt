@@ -32,7 +32,7 @@ internal fun GroupSentMessageInfo(
     likes = likes,
     created = created
 ) {
-    override val chat: GroupChat get() = chat
+    override val chat: GroupChat = chat
 }
 
 internal fun JsonObject.toGroupSentMessageInfo(chat: GroupChat) = GroupSentMessageInfo(

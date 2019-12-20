@@ -14,8 +14,7 @@ interface User {
 }
 
 fun User(userId: String): User = object : User {
-    override val userId: String
-        get() = userId
+    override val userId: String = userId
 
     override fun equals(other: Any?): Boolean {
         return other is User && userId == other.userId

@@ -28,13 +28,13 @@ internal fun SentMessageInfo(
 ): SentMessageInfo = object : SentMessageInfo, SentMessage by SentMessage(
     messageId = messageId
 ) {
-    override val json: JsonObject get() = json
-    override val chat: Chat get() = chat
-    override val sender: UserInfo get() = sender
-    override val text: String? get() = text
-    override val attachments: List<Attachment> get() = attachments
-    override val sourceGuid: String get() = sourceGuid
-    override val likes: List<User> get() = likes
-    override val created: Long get() = created
-    override val messageId: String get() = messageId
+    override val json: JsonObject = json
+    override val chat: Chat = chat
+    override val sender: UserInfo = sender
+    override val text: String? = text
+    override val attachments: List<Attachment> = attachments
+    override val sourceGuid: String = sourceGuid
+    override val likes: List<User> = likes
+    override val created: Long = created
+    override val messageId: String = messageId
 }
