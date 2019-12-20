@@ -17,13 +17,13 @@ import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.bot.Bot
 import net.benwoodworth.groupme.client.bot.BotInfo
 import net.benwoodworth.groupme.client.chat.Chat
-import net.benwoodworth.groupme.client.chat.ChatClient
+import net.benwoodworth.groupme.client.chat.ChatContext
 import net.benwoodworth.groupme.client.chat.Message
 import net.benwoodworth.groupme.client.chat.direct.DirectChat
-import net.benwoodworth.groupme.client.chat.direct.DirectChatClient
+import net.benwoodworth.groupme.client.chat.direct.DirectChatContext
 import net.benwoodworth.groupme.client.chat.direct.DirectChatInfo
 import net.benwoodworth.groupme.client.chat.group.GroupChat
-import net.benwoodworth.groupme.client.chat.group.GroupChatClient
+import net.benwoodworth.groupme.client.chat.group.GroupChatContext
 import net.benwoodworth.groupme.client.chat.group.GroupChatInfo
 import net.benwoodworth.groupme.client.media.GroupMeImage
 
@@ -141,22 +141,22 @@ class GroupMeClient internal constructor(
         } while (responseData.response!!.any())
     }
 
-    fun getChatClient(chat: Chat): ChatClient {
+    fun getChatClient(chat: Chat): ChatContext {
         throw IllegalStateException("Unable to create client for $chat")
     }
 
     val Chat.client
         get() = getChatClient(this)
 
-    fun getChatClient(chat: DirectChat): DirectChatClient {
-        return DirectChatClient(chat, this)
+    fun getChatClient(chat: DirectChat): DirectChatContext {
+        return DirectChatContext(chat, this)
     }
 
     val DirectChat.client
         get() = getChatClient(this)
 
-    fun getChatClient(chat: GroupChat): GroupChatClient {
-        return GroupChatClient(chat, this)
+    fun getChatClient(chat: GroupChat): GroupChatContext {
+        return GroupChatContext(chat, this)
     }
 
     val GroupChat.client

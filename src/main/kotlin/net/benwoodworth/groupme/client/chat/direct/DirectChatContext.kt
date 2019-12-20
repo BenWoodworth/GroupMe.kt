@@ -8,14 +8,14 @@ import kotlinx.serialization.json.JsonPrimitive
 import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.GroupMeClient
-import net.benwoodworth.groupme.client.chat.ChatClient
+import net.benwoodworth.groupme.client.chat.ChatContext
 import net.benwoodworth.groupme.client.chat.Message
 import net.benwoodworth.groupme.client.chat.SentMessage
 
-class DirectChatClient internal constructor(
+class DirectChatContext internal constructor(
     override val chat: DirectChat,
-    groupMeClient: GroupMeClient
-) : ChatClient(groupMeClient) {
+    client: GroupMeClient
+) : ChatContext(client) {
     override suspend fun sendMessage(message: Message): DirectSentMessageInfo {
         @Serializable
         class Request(val direct_message: JsonObject)
@@ -23,13 +23,13 @@ class DirectChatClient internal constructor(
         val newEntries = mapOf("recipient_id" to JsonPrimitive(chat.toUser.userId))
         val appendedjson = JsonObject(message.json + newEntries)
 
-        val response = groupMeClient.httpClient.sendApiV3Request(
+        val response = client.httpClient.sendApiV3Request(
             method = HttpMethod.Post,
             endpoint = "/direct_messages",
-            body = groupMeClient.json.stringify(Request.serializer(), Request(appendedjson))
+            body = client.json.stringify(Request.serializer(), Request(appendedjson))
         )
 
-        return groupMeClient.json
+        return client.json
             .parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
             .response!!.getObject("direct_message")
             .toDirectSentMessageInfo(chat)
@@ -50,7 +50,7 @@ class DirectChatClient internal constructor(
             val messages: List<JsonObject>
         )
 
-        val response = groupMeClient.httpClient.sendApiV3Request(
+        val response = client.httpClient.sendApiV3Request(
             method = HttpMethod.Get,
             endpoint = "/direct_messages",
             params = mapOf(
@@ -65,7 +65,7 @@ class DirectChatClient internal constructor(
             return emptyList()
         }
 
-        val responseJson = groupMeClient.json.parse(
+        val responseJson = client.json.parse(
             ResponseEnvelope.serializer(Response.serializer()),
             response.data
         )

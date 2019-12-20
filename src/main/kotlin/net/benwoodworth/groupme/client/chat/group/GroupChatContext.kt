@@ -8,26 +8,26 @@ import net.benwoodworth.groupme.UserInfo
 import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.GroupMeClient
-import net.benwoodworth.groupme.client.chat.ChatClient
+import net.benwoodworth.groupme.client.chat.ChatContext
 import net.benwoodworth.groupme.client.chat.Message
 import net.benwoodworth.groupme.client.chat.SentMessage
 import net.benwoodworth.groupme.client.media.GroupMeImage
 
-open class GroupChatClient internal constructor(
+open class GroupChatContext internal constructor(
     override val chat: GroupChat,
-    groupMeClient: GroupMeClient
-): ChatClient(groupMeClient) {
+    client: GroupMeClient
+) : ChatContext(client) {
     override suspend fun sendMessage(message: Message): GroupSentMessageInfo {
         @Serializable
         class Request(val message: JsonObject)
 
-        val response = groupMeClient.httpClient.sendApiV3Request(
+        val response = client.httpClient.sendApiV3Request(
             method = HttpMethod.Post,
             endpoint = "/groups/${chat.chatId}/messages",
-            body = groupMeClient.json.stringify(Request.serializer(), Request(message.json))
+            body = client.json.stringify(Request.serializer(), Request(message.json))
         )
 
-        val responseJson = groupMeClient.json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
+        val responseJson = client.json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
 
         return responseJson.response!!.getObject("message").toGroupSentMessageInfo(chat)
     }
@@ -47,7 +47,7 @@ open class GroupChatClient internal constructor(
             val messages: List<JsonObject>
         )
 
-        val response = groupMeClient.httpClient.sendApiV3Request(
+        val response = client.httpClient.sendApiV3Request(
             method = HttpMethod.Get,
             endpoint = "/groups/${chat.chatId}/messages",
             params = mapOf(
@@ -61,7 +61,7 @@ open class GroupChatClient internal constructor(
             return emptyList()
         }
 
-        val responseJson = groupMeClient.json.parse(
+        val responseJson = client.json.parse(
             ResponseEnvelope.serializer(Response.serializer()),
             response.data
         )
@@ -119,12 +119,12 @@ open class GroupChatClient internal constructor(
     }
 
     suspend fun getMembers(): List<UserInfo> {
-        val response = groupMeClient.httpClient.sendApiV3Request(
+        val response = client.httpClient.sendApiV3Request(
             method = HttpMethod.Get,
             endpoint = "/groups/${chat.chatId}"
         )
 
-        val responseData = groupMeClient.json.parse(
+        val responseData = client.json.parse(
             deserializer = ResponseEnvelope.serializer(JsonObject.serializer()),
             string = response.data
         )

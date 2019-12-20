@@ -8,8 +8,8 @@ import net.benwoodworth.groupme.client.AuthenticatedUserInfo
 import net.benwoodworth.groupme.client.GroupMeClient
 
 @GroupMeScope
-abstract class ChatClient internal constructor(
-    protected val groupMeClient: GroupMeClient
+abstract class ChatContext internal constructor(
+    protected val client: GroupMeClient
 ) {
     abstract val chat: Chat
 
@@ -27,24 +27,24 @@ abstract class ChatClient internal constructor(
 
 
     suspend fun getUserInfo(user: User): UserInfo {
-        return groupMeClient.getUserInfo(user)
+        return client.getUserInfo(user)
     }
 
     suspend fun User.getInfo() = getUserInfo(this)
 
     suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo {
-        return groupMeClient.getAuthenticatedUserInfo()
+        return client.getAuthenticatedUserInfo()
     }
 
 
     suspend fun likeMessage() {
-        return groupMeClient.likeMessage()
+        return client.likeMessage()
     }
 
     suspend fun Message.like() = likeMessage()
 
     suspend fun unlikeMessage() {
-        return groupMeClient.unlikeMessage()
+        return client.unlikeMessage()
     }
 
     suspend fun Message.unlike() = unlikeMessage()
