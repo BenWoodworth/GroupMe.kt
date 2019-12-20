@@ -7,7 +7,7 @@ open class Bot(
      * Compares [Bot]s by [botId].
      */
     final override fun equals(other: Any?): Boolean {
-        return other is Bot && other.botId == botId
+        return other is Bot && botId == other.botId
     }
 
     final override fun hashCode(): Int {

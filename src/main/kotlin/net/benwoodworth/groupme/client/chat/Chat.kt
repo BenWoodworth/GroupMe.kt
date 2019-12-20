@@ -10,21 +10,3 @@ interface Chat {
 
     override fun hashCode(): Int
 }
-
-internal fun Chat(
-    chatId: String
-): Chat = object : Chat {
-    override val chatId: String = chatId
-
-    override fun equals(other: Any?): Boolean {
-        return other is Chat && chatId == other.chatId
-    }
-
-    override fun hashCode(): Int {
-        return chatId.hashCode()
-    }
-
-    override fun toString(): String {
-        return "Chat($chatId)"
-    }
-}

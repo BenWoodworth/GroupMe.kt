@@ -12,19 +12,3 @@ interface SentMessage {
 
     override fun toString(): String
 }
-
-fun SentMessage(messageId: String): SentMessage = object : SentMessage {
-    override val messageId: String = messageId
-
-    override fun equals(other: Any?): Boolean {
-        return other is SentMessage && other.messageId == messageId
-    }
-
-    override fun hashCode(): Int {
-        return messageId.hashCode()
-    }
-
-    override fun toString(): String {
-        return "SentMessage($messageId)"
-    }
-}
