@@ -66,7 +66,14 @@ class GroupMeClient internal constructor(
             string = response.data
         )
 
-        return AuthenticatedUserInfo(responseData.response!!)
+        val userJson = responseData.response!!.jsonObject
+
+        return AuthenticatedUserInfo(
+            json = userJson,
+            userId = userJson.getPrimitive("user_id").content,
+            name = userJson.getPrimitive("name").content,
+            avatar = userJson.getPrimitive("avatar_url").contentOrNull?.let { GroupMeImage(it) }
+        )
     }
 
 

@@ -4,10 +4,19 @@ import kotlinx.serialization.json.JsonObject
 import net.benwoodworth.groupme.UserInfo
 import net.benwoodworth.groupme.client.media.GroupMeImage
 
-class AuthenticatedUserInfo internal constructor(
+interface AuthenticatedUserInfo : UserInfo {
     val json: JsonObject
-) : UserInfo by UserInfo(
-    userId = json.getPrimitive("id").content,
-    name = json.getPrimitive("name").content,
-    avatar = json.getPrimitive("avatar").contentOrNull?.let { GroupMeImage(it) }
-)
+}
+
+internal fun AuthenticatedUserInfo(
+    json: JsonObject,
+    userId: String,
+    name: String,
+    avatar: GroupMeImage?
+): AuthenticatedUserInfo = object : AuthenticatedUserInfo, UserInfo by UserInfo(
+    userId = userId,
+    name = name,
+    avatar = avatar
+) {
+    override val json: JsonObject = json
+}
