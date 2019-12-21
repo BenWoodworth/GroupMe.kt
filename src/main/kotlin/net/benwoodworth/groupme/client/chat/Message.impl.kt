@@ -6,7 +6,7 @@ import kotlinx.serialization.json.json
 
 fun Message(json: JsonObject): Message = MessageImpl(
     json = json,
-    text = json.getPrimitiveOrNull("text")?.contentOrNull,
+    text = json.getPrimitive("text").contentOrNull,
     attachments = json.getArray("attachments").map { Attachment(it.jsonObject) },
     sourceGuid = json.getPrimitive("source_guid").content
 )
