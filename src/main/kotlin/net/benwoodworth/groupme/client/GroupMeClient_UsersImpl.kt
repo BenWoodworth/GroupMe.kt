@@ -5,7 +5,6 @@ import net.benwoodworth.groupme.NamedUserInfo
 import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
-import net.benwoodworth.groupme.client.media.GroupMeImage
 import net.benwoodworth.groupme.client.media.toGroupMeImage
 
 internal class GroupMeClient_UsersImpl : GroupMeClient_Users {
@@ -27,7 +26,7 @@ internal class GroupMeClient_UsersImpl : GroupMeClient_Users {
         return NamedUserInfo(
             userId = userData.getPrimitive("user_id").content,
             name = userData.getPrimitive("name").content,
-            avatar = userData.getPrimitive("avatar_url").content?.let { GroupMeImage(it) }
+            avatar = userData.getPrimitive("avatar_url").content.toGroupMeImage()
         )
     }
 

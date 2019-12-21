@@ -12,6 +12,7 @@ import net.benwoodworth.groupme.client.bot.BotContext
 import net.benwoodworth.groupme.client.bot.BotInfo
 import net.benwoodworth.groupme.client.chat.group.GroupChat
 import net.benwoodworth.groupme.client.media.GroupMeImage
+import net.benwoodworth.groupme.client.media.toGroupMeImage
 
 internal class GroupMeClient_BotsImpl : GroupMeClient_Bots {
     lateinit var client: GroupMeClient
@@ -54,7 +55,7 @@ internal class GroupMeClient_BotsImpl : GroupMeClient_Bots {
                     botId = it.bot_id,
                     name = it.name,
                     group = GroupChat(it.group_id),
-                    avatar = it.avatar_url?.let { url -> GroupMeImage(url) },
+                    avatar = it.avatar_url?.toGroupMeImage(),
                     callbackUrl = it.callback_url
                 )
             )

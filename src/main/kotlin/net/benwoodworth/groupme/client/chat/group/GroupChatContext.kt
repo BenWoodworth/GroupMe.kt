@@ -11,7 +11,7 @@ import net.benwoodworth.groupme.client.GroupMeClient
 import net.benwoodworth.groupme.client.chat.ChatContext
 import net.benwoodworth.groupme.client.chat.Message
 import net.benwoodworth.groupme.client.chat.SentMessage
-import net.benwoodworth.groupme.client.media.GroupMeImage
+import net.benwoodworth.groupme.client.media.toGroupMeImage
 
 open class GroupChatContext internal constructor(
     override val chat: GroupChat,
@@ -133,7 +133,7 @@ open class GroupChatContext internal constructor(
                 userId = it.jsonObject.getPrimitive("user_id").content,
                 name = it.jsonObject.getPrimitive("name").content,
                 nickname = it.jsonObject.getPrimitive("nickname").content,
-                avatar = it.jsonObject.getPrimitive("image_url").content.let { GroupMeImage(it) }
+                avatar = it.jsonObject.getPrimitive("image_url").content.toGroupMeImage()
             )
         }
     }
