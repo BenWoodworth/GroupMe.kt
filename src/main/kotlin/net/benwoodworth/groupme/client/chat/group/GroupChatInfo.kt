@@ -4,7 +4,7 @@ import kotlinx.serialization.json.JsonObject
 
 class GroupChatInfo internal constructor(
     val json: JsonObject
-): GroupChat(
+) : GroupChat by GroupChat(
     chatId = json.getPrimitive("id").content
 ) {
     val name: String
@@ -19,8 +19,8 @@ class GroupChatInfo internal constructor(
         val count: Int
             get() = json.getPrimitive("count").int
 
-        val preview: GroupSentMessageInfo = json.getObject("preview")
-            .toGroupSentMessageInfo(GroupChat(chatId))
+//        val preview: GroupSentMessageInfo = json.getObject("preview")
+//            .let { GroupSentMessageInfo(GroupChat(chatId), it) }
     }
 
     override fun toString(): String {
