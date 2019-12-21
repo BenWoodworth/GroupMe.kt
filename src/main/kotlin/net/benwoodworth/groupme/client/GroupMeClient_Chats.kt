@@ -1,6 +1,7 @@
 package net.benwoodworth.groupme.client
 
 import kotlinx.coroutines.flow.Flow
+import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.client.chat.Chat
 import net.benwoodworth.groupme.client.chat.ChatContext
 import net.benwoodworth.groupme.client.chat.ChatInfo
@@ -33,4 +34,15 @@ interface GroupMeClient_Chats {
 
     suspend operator fun DirectChat.invoke(block: suspend DirectChatContext.() -> Unit) = context { block() }
     suspend operator fun GroupChat.invoke(block: suspend GroupChatContext.() -> Unit) = context { block() }
+
+    suspend fun DirectChat(
+        fromUser: User,
+        toUser: User,
+        block: suspend DirectChatContext.() -> Unit
+    ) = (DirectChat(fromUser, toUser)) { block() }
+
+    suspend fun GroupChat(
+        chatId: String,
+        block: suspend GroupChatContext.() -> Unit
+    ) = (GroupChat(chatId)) { block() }
 }
