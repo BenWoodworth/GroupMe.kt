@@ -33,10 +33,6 @@ open class GroupChatContext internal constructor(
             .let { GroupSentMessageInfo(chat, it) }
     }
 
-    override suspend fun Message.send(): GroupSentMessageInfo {
-        return sendMessage(this)
-    }
-
     private suspend fun fetchMessages(
         beforeId: String? = null,
         sinceId: String? = null,

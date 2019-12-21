@@ -35,10 +35,6 @@ class DirectChatContext internal constructor(
             .let { DirectSentMessageInfo(chat, it) }
     }
 
-    override suspend fun Message.send(): DirectSentMessageInfo {
-        return sendMessage(this)
-    }
-
     private suspend fun fetchMessages(
         beforeId: String? = null,
         sinceId: String? = null,
