@@ -5,7 +5,7 @@ import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.UserInfo
 import net.benwoodworth.groupme.client.chat.Attachment
 import net.benwoodworth.groupme.client.chat.SentMessageInfo
-import net.benwoodworth.groupme.client.media.GroupMeImage
+import net.benwoodworth.groupme.client.media.toGroupMeImage
 
 internal fun DirectSentMessageInfo(
     chat: DirectChat,
@@ -15,7 +15,7 @@ internal fun DirectSentMessageInfo(
     sender: UserInfo = UserInfo(
         userId = json.getPrimitive("sender_id").content,
         name = json.getPrimitive("name").content,
-        avatar = json.getPrimitive("avatar_url").contentOrNull?.let { GroupMeImage(it) }
+        avatar = json.getPrimitive("avatar_url").content.toGroupMeImage()
     ),
     attachments: List<Attachment> = json.getArray("attachments").map {
         Attachment(it.jsonObject)

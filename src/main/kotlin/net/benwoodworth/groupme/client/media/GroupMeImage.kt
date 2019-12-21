@@ -15,3 +15,5 @@ class GroupMeImage internal constructor(
         return "GroupMeImage($imageUrl)"
     }
 }
+
+internal fun String.toGroupMeImage() = GroupMeImage(this)

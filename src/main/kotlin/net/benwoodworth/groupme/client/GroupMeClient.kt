@@ -18,6 +18,7 @@ import net.benwoodworth.groupme.client.bot.Bot
 import net.benwoodworth.groupme.client.bot.BotInfo
 import net.benwoodworth.groupme.client.chat.Chat
 import net.benwoodworth.groupme.client.chat.ChatContext
+import net.benwoodworth.groupme.client.chat.ChatInfo
 import net.benwoodworth.groupme.client.chat.Message
 import net.benwoodworth.groupme.client.chat.direct.DirectChat
 import net.benwoodworth.groupme.client.chat.direct.DirectChatContext
@@ -27,6 +28,7 @@ import net.benwoodworth.groupme.client.chat.group.GroupChat
 import net.benwoodworth.groupme.client.chat.group.GroupChatContext
 import net.benwoodworth.groupme.client.chat.group.GroupChatInfo
 import net.benwoodworth.groupme.client.media.GroupMeImage
+import net.benwoodworth.groupme.client.media.toGroupMeImage
 
 @GroupMeScope
 class GroupMeClient internal constructor(
@@ -73,12 +75,12 @@ class GroupMeClient internal constructor(
             json = userJson,
             userId = userJson.getPrimitive("user_id").content,
             name = userJson.getPrimitive("name").content,
-            avatar = userJson.getPrimitive("avatar_url").contentOrNull?.let { GroupMeImage(it) }
+            avatar = userJson.getPrimitive("avatar_url").content.toGroupMeImage()
         )
     }
 
 
-    fun getChats(): Flow<Chat> = flow {
+    fun getChats(): Flow<ChatInfo> = flow<ChatInfo> {
         getGroupChats().collect { emit(it) }
         getDirectChats().collect { emit(it) }
     }
@@ -105,7 +107,7 @@ class GroupMeClient internal constructor(
                     UserInfo(
                         userId = getPrimitive("id").content,
                         name = getPrimitive("name").content,
-                        avatar = getPrimitive("avatar_url").contentOrNull?.let { url -> GroupMeImage(url) }
+                        avatar = getPrimitive("avatar_url").content.toGroupMeImage()
                     )
                 }
 

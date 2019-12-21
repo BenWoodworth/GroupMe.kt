@@ -8,4 +8,5 @@ interface ChatInfo {
     val messageCount: Int
     val image: GroupMeImage
     val name: String
+    val lastMessage: SentMessage
 }

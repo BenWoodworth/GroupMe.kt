@@ -178,3 +178,11 @@ fun Attachment(json: JsonObject): Attachment {
         else -> Attachment.Unknown(json)
     }
 }
+
+internal fun JsonObject.toAttachment(): Attachment {
+    return Attachment(this)
+}
+
+internal fun JsonArray.toAttachmentList(): List<Attachment> {
+    return map { it.jsonObject.toAttachment() }
+}

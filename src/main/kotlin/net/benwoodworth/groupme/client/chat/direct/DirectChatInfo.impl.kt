@@ -4,6 +4,7 @@ import kotlinx.serialization.json.JsonObject
 import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.UserInfo
 import net.benwoodworth.groupme.client.media.GroupMeImage
+import net.benwoodworth.groupme.client.media.toGroupMeImage
 
 internal fun DirectChatInfo(
     json: JsonObject,
@@ -12,7 +13,7 @@ internal fun DirectChatInfo(
         UserInfo(
             userId = getPrimitive("id").content,
             name = getPrimitive("name").content,
-            avatar = getPrimitive("avatar_url").contentOrNull?.let { GroupMeImage(it) }
+            avatar = getPrimitive("avatar_url").content.toGroupMeImage()
         )
     },
     lastMessage: DirectSentMessageInfo = json.getObject("last_message").let { message ->

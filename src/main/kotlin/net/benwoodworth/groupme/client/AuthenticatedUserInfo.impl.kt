@@ -8,7 +8,7 @@ internal fun AuthenticatedUserInfo(
     json: JsonObject,
     userId: String,
     name: String,
-    avatar: GroupMeImage?
+    avatar: GroupMeImage
 ): AuthenticatedUserInfo = AuthenticatedUserInfoImpl(
     json = json,
     userId = userId,
@@ -20,7 +20,7 @@ private class AuthenticatedUserInfoImpl(
     override val json: JsonObject,
     userId: String,
     name: String,
-    avatar: GroupMeImage?
+    avatar: GroupMeImage
 ) : AuthenticatedUserInfo, UserInfo by UserInfo(
     userId = userId,
     name = name,

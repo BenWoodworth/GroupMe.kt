@@ -1,29 +1,28 @@
 package net.benwoodworth.groupme.client.chat.group
 
 import kotlinx.serialization.json.JsonObject
+import net.benwoodworth.groupme.User
+import net.benwoodworth.groupme.client.chat.Attachment
+import net.benwoodworth.groupme.client.chat.ChatInfo
+import net.benwoodworth.groupme.client.chat.SentMessage
+import net.benwoodworth.groupme.client.chat.toAttachmentList
+import net.benwoodworth.groupme.client.media.GroupMeImage
+import net.benwoodworth.groupme.client.media.toGroupMeImage
 
-class GroupChatInfo internal constructor(
-    val json: JsonObject
-) : GroupChat by GroupChat(
-    chatId = json.getPrimitive("id").content
-) {
-    val name: String
-        get() = json.getPrimitive("name").content
+interface GroupChatInfo : GroupChat, ChatInfo {
+    val description: String
+    val creator: User
+    override val lastMessage: LastMessage
 
-    val messages: Messages = Messages()
-
-    inner class Messages internal constructor() {
-        private val json: JsonObject
-            get() = this@GroupChatInfo.json.getObject("messages")
-
-        val count: Int
-            get() = json.getPrimitive("count").int
-
-//        val preview: GroupSentMessageInfo = json.getObject("preview")
-//            .let { GroupSentMessageInfo(GroupChat(chatId), it) }
-    }
-
-    override fun toString(): String {
-        return "GroupChat($name)"
-    }
+    class LastMessage internal constructor(
+        val json: JsonObject,
+        messageId: String,
+        val text: String? = json.getPrimitive("text").contentOrNull,
+        val image: GroupMeImage = json.getPrimitive("image_url").content.toGroupMeImage(),
+        val attachments: List<Attachment> = json.getArray("attachments").toAttachmentList()
+    ) : SentMessage by SentMessage(
+        messageId = messageId
+    )
 }
+
+
