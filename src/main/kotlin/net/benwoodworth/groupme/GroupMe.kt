@@ -37,4 +37,8 @@ object GroupMe {
 
         return GroupMeClient(authenticatedUser, groupMeHttpClient, json)
     }
+
+    suspend inline fun getClient(apiToken: String, block: GroupMeClient.() -> Unit) {
+        (getClient(apiToken)) { block() }
+    }
 }

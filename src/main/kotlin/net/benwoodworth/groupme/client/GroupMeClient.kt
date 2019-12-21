@@ -36,6 +36,10 @@ class GroupMeClient internal constructor(
     internal val httpClient: GroupMeHttpClient,
     internal val json: Json
 ) {
+    inline operator fun invoke(block: GroupMeClient.() -> Unit) {
+        block()
+    }
+
     suspend fun getUserInfo(user: User): UserInfo {
         val response = httpClient.sendApiV2Request(
             method = HttpMethod.Get,
