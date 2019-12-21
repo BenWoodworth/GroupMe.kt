@@ -22,6 +22,7 @@ import net.benwoodworth.groupme.client.chat.Message
 import net.benwoodworth.groupme.client.chat.direct.DirectChat
 import net.benwoodworth.groupme.client.chat.direct.DirectChatContext
 import net.benwoodworth.groupme.client.chat.direct.DirectChatInfo
+//import net.benwoodworth.groupme.client.chat.direct.DirectChatInfo
 import net.benwoodworth.groupme.client.chat.group.GroupChat
 import net.benwoodworth.groupme.client.chat.group.GroupChatContext
 import net.benwoodworth.groupme.client.chat.group.GroupChatInfo
@@ -108,7 +109,7 @@ class GroupMeClient internal constructor(
                     )
                 }
 
-                emit(DirectChatInfo(authenticatedUser, otherUser))
+                emit(DirectChatInfo(it, authenticatedUser, otherUser))
             }
 
             page++

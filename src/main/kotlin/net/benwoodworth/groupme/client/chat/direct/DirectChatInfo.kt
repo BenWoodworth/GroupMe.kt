@@ -1,11 +1,9 @@
 package net.benwoodworth.groupme.client.chat.direct
 
-import net.benwoodworth.groupme.User
+import net.benwoodworth.groupme.UserInfo
+import net.benwoodworth.groupme.client.chat.ChatInfo
 
-class DirectChatInfo internal constructor(
-    fromUser: User,
-    toUser: User
-) : DirectChat by DirectChat(
-    fromUser = fromUser,
-    toUser = toUser
-)
+interface DirectChatInfo : DirectChat, ChatInfo {
+    override val toUser: UserInfo
+    val lastMessage: DirectSentMessageInfo
+}
