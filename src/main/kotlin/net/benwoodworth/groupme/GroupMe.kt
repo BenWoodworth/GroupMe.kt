@@ -3,16 +3,16 @@ package net.benwoodworth.groupme
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
-import net.benwoodworth.groupme.api.*
+import net.benwoodworth.groupme.api.DefaultHttpClient
+import net.benwoodworth.groupme.api.GroupMeHttpClient
+import net.benwoodworth.groupme.api.HttpMethod
+import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.GroupMeClient
 
 object GroupMe {
-    suspend fun getClient(
-        apiToken: String,
-        httpClient: HttpClient = DefaultHttpClient()
-    ): GroupMeClient {
+    suspend fun getClient(apiToken: String): GroupMeClient {
         val groupMeHttpClient = GroupMeHttpClient(
-            httpClient,
+            DefaultHttpClient(),
             apiToken,
             "https://api.groupme.com/v3",
             "https://v2.groupme.com"
