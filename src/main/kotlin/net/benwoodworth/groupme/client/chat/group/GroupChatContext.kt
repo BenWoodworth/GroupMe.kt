@@ -130,10 +130,10 @@ open class GroupChatContext internal constructor(
 
         return members.map {
             NamedUserInfo(
-                userId = it.jsonObject["user_id"]!!.primitive.content,
-                name = it.jsonObject["name"]!!.primitive.content,
-                nickname = it.jsonObject["nickname"]!!.primitive.content,
-                avatar = it.jsonObject["image_url"]!!.primitive.content.let { GroupMeImage(it) }
+                userId = it.jsonObject.getPrimitive("user_id").content,
+                name = it.jsonObject.getPrimitive("name").content,
+                nickname = it.jsonObject.getPrimitive("nickname").content,
+                avatar = it.jsonObject.getPrimitive("image_url").content.let { GroupMeImage(it) }
             )
         }
     }

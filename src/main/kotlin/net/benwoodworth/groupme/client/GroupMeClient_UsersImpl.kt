@@ -25,9 +25,9 @@ internal class GroupMeClient_UsersImpl : GroupMeClient_Users {
         val userData = responseData.response!!.getObject("user")
 
         return NamedUserInfo(
-            userId = userData["user_id"]!!.primitive.content,
-            name = userData["name"]!!.primitive.content,
-            avatar = userData["avatar_url"]!!.primitive.content?.let { GroupMeImage(it) }
+            userId = userData.getPrimitive("user_id").content,
+            name = userData.getPrimitive("name").content,
+            avatar = userData.getPrimitive("avatar_url").content?.let { GroupMeImage(it) }
         )
     }
 

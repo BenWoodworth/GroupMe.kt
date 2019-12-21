@@ -12,7 +12,7 @@ sealed class Attachment {
     abstract val json: JsonObject
 
     val type: String by lazy {
-        json["type"]!!.primitive.content
+        json.getPrimitive("type").content
     }
 
     internal class Unknown(
@@ -25,7 +25,7 @@ sealed class Attachment {
     ) : Attachment() {
         internal constructor(json: JsonObject) : this(
             json,
-            GroupMeImage(json["url"]!!.primitive.content)
+            GroupMeImage(json.getPrimitive("url").content)
         )
 
         constructor(image: GroupMeImage) : this(
@@ -43,8 +43,8 @@ sealed class Attachment {
         internal constructor(json: JsonObject) : this(
             json,
             GroupMeVideo(
-                json["url"]!!.primitive.content,
-                GroupMeImage(json["preview_url"]!!.primitive.content)
+                json.getPrimitive("url").content,
+                GroupMeImage(json.getPrimitive("preview_url").content)
             )
         )
 
@@ -65,9 +65,9 @@ sealed class Attachment {
     ) : Attachment() {
         internal constructor(json: JsonObject) : this(
             json,
-            json["name"]!!.primitive.content,
-            json["lat"]!!.primitive.double,
-            json["lng"]!!.primitive.double
+            json.getPrimitive("name").content,
+            json.getPrimitive("lat").double,
+            json.getPrimitive("lng").double
         )
 
         constructor(name: String, latitude: Double, longitude: Double) : this(
@@ -87,7 +87,7 @@ sealed class Attachment {
     ) : Attachment() {
         internal constructor(json: JsonObject) : this(
             json,
-            json["token"]!!.primitive.content
+            json.getPrimitive("token").content
         )
 
         constructor(token: String) : this(
@@ -105,8 +105,8 @@ sealed class Attachment {
     ) : Attachment() {
         internal constructor(json: JsonObject) : this(
             json,
-            json["placeholder"]!!.primitive.content.single(),
-            json["charmap"]!!.jsonArray.toCharMap()
+            json.getPrimitive("placeholder").content.single(),
+            json.getArray("charmap").toCharMap()
         )
 
         constructor(charmap: List<CharMap>) : this(
@@ -151,8 +151,8 @@ sealed class Attachment {
 
         private companion object {
             fun JsonObject.toMentions(): List<Mention> {
-                val userIds = this["user_ids"]!!.jsonArray
-                val loci = this["loci"]!!.jsonArray
+                val userIds = this.getArray("user_ids")
+                val loci = this.getArray("loci")
 
                 return List(userIds.size) { i ->
                     val loc = loci[i].jsonArray
@@ -168,7 +168,7 @@ sealed class Attachment {
 }
 
 fun Attachment(json: JsonObject): Attachment {
-    return when (json["type"]!!.primitive.content) {
+    return when (json.getPrimitive("type").content) {
         "image" -> Attachment.Image(json)
         "video" -> Attachment.Video(json)
         "location" -> Attachment.Location(json)
