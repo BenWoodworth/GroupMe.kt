@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.list
-import net.benwoodworth.groupme.UserInfo
+import net.benwoodworth.groupme.NamedUserInfo
 import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.chat.Chat
@@ -46,7 +46,7 @@ internal class GroupMeClient_ChatsImpl : GroupMeClient_Chats {
 
             responseData.response!!.forEach {
                 val otherUser = it.getObject("other_user").run {
-                    UserInfo(
+                    NamedUserInfo(
                         userId = getPrimitive("id").content,
                         name = getPrimitive("name").content,
                         avatar = getPrimitive("avatar_url").content.toGroupMeImage()

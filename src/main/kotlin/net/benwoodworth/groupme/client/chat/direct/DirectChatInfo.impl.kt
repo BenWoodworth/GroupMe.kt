@@ -1,16 +1,16 @@
 package net.benwoodworth.groupme.client.chat.direct
 
 import kotlinx.serialization.json.JsonObject
+import net.benwoodworth.groupme.NamedUserInfo
 import net.benwoodworth.groupme.User
-import net.benwoodworth.groupme.UserInfo
 import net.benwoodworth.groupme.client.media.GroupMeImage
 import net.benwoodworth.groupme.client.media.toGroupMeImage
 
 internal fun DirectChatInfo(
     json: JsonObject,
     fromUser: User,
-    toUser: UserInfo = json.getObject("other_user").run {
-        UserInfo(
+    toUser: NamedUserInfo = json.getObject("other_user").run {
+        NamedUserInfo(
             userId = getPrimitive("id").content,
             name = getPrimitive("name").content,
             avatar = getPrimitive("avatar_url").content.toGroupMeImage()
@@ -34,7 +34,7 @@ internal fun DirectChatInfo(
 private class DirectChatInfoImpl(
     override val json: JsonObject,
     fromUser: User,
-    override val toUser: UserInfo,
+    override val toUser: NamedUserInfo,
     override val lastMessage: DirectSentMessageInfo,
     override val messageCount: Int
 ) : DirectChatInfo, DirectChat by DirectChat(

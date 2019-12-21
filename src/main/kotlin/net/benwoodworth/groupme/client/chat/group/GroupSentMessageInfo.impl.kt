@@ -13,7 +13,7 @@ internal fun GroupSentMessageInfo(
     messageId: String = json.getPrimitive("id").content,
     sender: UserInfo = UserInfo(
         userId = json.getPrimitive("sender_id").content,
-        name = json.getPrimitive("name").content,
+        nickname = json.getPrimitive("name").content,
         avatar = json.getPrimitive("avatar_url").content.toGroupMeImage()
     ),
     text: String? = json.getPrimitive("text").contentOrNull,

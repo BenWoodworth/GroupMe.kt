@@ -1,8 +1,8 @@
 package net.benwoodworth.groupme.client
 
 import kotlinx.serialization.json.JsonObject
-import net.benwoodworth.groupme.UserInfo
+import net.benwoodworth.groupme.NamedUserInfo
 
-interface AuthenticatedUserInfo : UserInfo {
+interface AuthenticatedUserInfo : NamedUserInfo {
     val json: JsonObject
 }

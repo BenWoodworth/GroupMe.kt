@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
-import net.benwoodworth.groupme.UserInfo
+import net.benwoodworth.groupme.NamedUserInfo
 import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.GroupMeClient
@@ -115,7 +115,7 @@ open class GroupChatContext internal constructor(
         }
     }
 
-    suspend fun getMembers(): List<UserInfo> {
+    suspend fun getMembers(): List<NamedUserInfo> {
         val response = client.httpClient.sendApiV3Request(
             method = HttpMethod.Get,
             endpoint = "/groups/${chat.chatId}"
@@ -129,9 +129,10 @@ open class GroupChatContext internal constructor(
         val members = responseData.response!!.getArray("members")
 
         return members.map {
-            UserInfo(
+            NamedUserInfo(
                 userId = it.jsonObject["user_id"]!!.primitive.content,
                 name = it.jsonObject["name"]!!.primitive.content,
+                nickname = it.jsonObject["nickname"]!!.primitive.content,
                 avatar = it.jsonObject["image_url"]!!.primitive.content.let { GroupMeImage(it) }
             )
         }

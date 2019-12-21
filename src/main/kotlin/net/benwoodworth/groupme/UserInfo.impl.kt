@@ -4,22 +4,22 @@ import net.benwoodworth.groupme.client.media.GroupMeImage
 
 internal fun UserInfo(
     userId: String,
-    name: String,
+    nickname: String,
     avatar: GroupMeImage
 ): UserInfo = UserInfoImpl(
-    userId,
-    name,
-    avatar
+    userId = userId,
+    nickname = nickname,
+    avatar = avatar
 )
 
 private class UserInfoImpl(
     userId: String,
-    override val name: String,
+    override val nickname: String,
     override val avatar: GroupMeImage
 ) : UserInfo, User by User(
     userId = userId
 ) {
     override fun toString(): String {
-        return "User($name)"
+        return "User($nickname)"
     }
 }

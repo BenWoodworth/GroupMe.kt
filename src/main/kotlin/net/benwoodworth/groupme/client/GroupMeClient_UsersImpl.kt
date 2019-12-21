@@ -1,8 +1,8 @@
 package net.benwoodworth.groupme.client
 
 import kotlinx.serialization.json.JsonObject
+import net.benwoodworth.groupme.NamedUserInfo
 import net.benwoodworth.groupme.User
-import net.benwoodworth.groupme.UserInfo
 import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.media.GroupMeImage
@@ -11,7 +11,7 @@ import net.benwoodworth.groupme.client.media.toGroupMeImage
 internal class GroupMeClient_UsersImpl : GroupMeClient_Users {
     lateinit var client: GroupMeClient
 
-    override suspend fun getUserInfo(user: User): UserInfo {
+    override suspend fun getUserInfo(user: User): NamedUserInfo {
         val response = client.httpClient.sendApiV2Request(
             method = HttpMethod.Get,
             endpoint = "/users/${user.userId}"
@@ -24,7 +24,7 @@ internal class GroupMeClient_UsersImpl : GroupMeClient_Users {
 
         val userData = responseData.response!!.getObject("user")
 
-        return UserInfo(
+        return NamedUserInfo(
             userId = userData["user_id"]!!.primitive.content,
             name = userData["name"]!!.primitive.content,
             avatar = userData["avatar_url"]!!.primitive.content?.let { GroupMeImage(it) }

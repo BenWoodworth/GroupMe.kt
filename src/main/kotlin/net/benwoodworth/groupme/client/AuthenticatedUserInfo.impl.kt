@@ -1,7 +1,7 @@
 package net.benwoodworth.groupme.client
 
 import kotlinx.serialization.json.JsonObject
-import net.benwoodworth.groupme.UserInfo
+import net.benwoodworth.groupme.NamedUserInfo
 import net.benwoodworth.groupme.client.media.GroupMeImage
 
 internal fun AuthenticatedUserInfo(
@@ -21,7 +21,7 @@ private class AuthenticatedUserInfoImpl(
     userId: String,
     name: String,
     avatar: GroupMeImage
-) : AuthenticatedUserInfo, UserInfo by UserInfo(
+) : AuthenticatedUserInfo, NamedUserInfo by NamedUserInfo(
     userId = userId,
     name = name,
     avatar = avatar
