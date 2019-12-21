@@ -19,7 +19,7 @@ internal fun GroupChatInfo(
         )
     },
     messageCount: Int = json.getObject("messages").getPrimitive("count").int,
-    image: GroupMeImage = json.getPrimitive("image_url").content.toGroupMeImage(),
+    image: GroupMeImage? = json.getPrimitive("image_url").toGroupMeImage(),
     name: String = json.getPrimitive("name").content
 ): GroupChatInfo = GroupChatInfoImpl(
     json = json,
@@ -39,7 +39,7 @@ private class GroupChatInfoImpl(
     override val creator: User,
     override val lastMessage: GroupChatInfo.LastMessage,
     override val messageCount: Int,
-    override val image: GroupMeImage,
+    override val image: GroupMeImage?,
     override val name: String
 ) : GroupChatInfo, GroupChat by GroupChat(
     chatId = chatId

@@ -133,7 +133,7 @@ open class GroupChatContext internal constructor(
                 userId = it.jsonObject.getPrimitive("user_id").content,
                 name = it.jsonObject.getPrimitive("name").content,
                 nickname = it.jsonObject.getPrimitive("nickname").content,
-                avatar = it.jsonObject.getPrimitive("image_url").content.toGroupMeImage()
+                avatar = it.jsonObject.getPrimitive("image_url").toGroupMeImage()
             )
         }
     }

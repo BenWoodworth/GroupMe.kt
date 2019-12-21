@@ -49,7 +49,7 @@ internal class GroupMeClient_ChatsImpl : GroupMeClient_Chats {
                     NamedUserInfo(
                         userId = getPrimitive("id").content,
                         name = getPrimitive("name").content,
-                        avatar = getPrimitive("avatar_url").content.toGroupMeImage()
+                        avatar = getPrimitive("avatar_url").toGroupMeImage()
                     )
                 }
 

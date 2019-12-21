@@ -14,7 +14,7 @@ internal fun GroupSentMessageInfo(
     sender: UserInfo = UserInfo(
         userId = json.getPrimitive("sender_id").content,
         nickname = json.getPrimitive("name").content,
-        avatar = json.getPrimitive("avatar_url").content.toGroupMeImage()
+        avatar = json.getPrimitive("avatar_url").toGroupMeImage()
     ),
     text: String? = json.getPrimitive("text").contentOrNull,
     attachments: List<Attachment> = json.getArray("attachments").map {

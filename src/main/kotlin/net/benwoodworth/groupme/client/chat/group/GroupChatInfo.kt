@@ -18,7 +18,7 @@ interface GroupChatInfo : GroupChat, ChatInfo {
         val json: JsonObject,
         messageId: String,
         val text: String? = json.getPrimitive("text").contentOrNull,
-        val image: GroupMeImage = json.getPrimitive("image_url").content.toGroupMeImage(),
+        val image: GroupMeImage? = json.getPrimitive("image_url").toGroupMeImage(),
         val attachments: List<Attachment> = json.getArray("attachments").toAttachmentList()
     ) : SentMessage by SentMessage(
         messageId = messageId

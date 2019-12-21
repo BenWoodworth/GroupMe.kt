@@ -13,7 +13,7 @@ internal fun DirectChatInfo(
         NamedUserInfo(
             userId = getPrimitive("id").content,
             name = getPrimitive("name").content,
-            avatar = getPrimitive("avatar_url").content.toGroupMeImage()
+            avatar = getPrimitive("avatar_url").toGroupMeImage()
         )
     },
     lastMessage: DirectSentMessageInfo = json.getObject("last_message").let { message ->
@@ -41,7 +41,7 @@ private class DirectChatInfoImpl(
     fromUser = fromUser,
     toUser = toUser
 ) {
-    override val image: GroupMeImage
+    override val image: GroupMeImage?
         get() = toUser.avatar
 
     override val name: String

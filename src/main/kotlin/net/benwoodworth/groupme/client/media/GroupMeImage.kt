@@ -1,5 +1,7 @@
 package net.benwoodworth.groupme.client.media
 
+import kotlinx.serialization.json.JsonPrimitive
+
 class GroupMeImage internal constructor(
     val imageUrl: String
 ) {
@@ -16,4 +18,12 @@ class GroupMeImage internal constructor(
     }
 }
 
-internal fun String.toGroupMeImage() = GroupMeImage(this)
+internal fun String.toGroupMeImage(): GroupMeImage? {
+    return this
+        .takeUnless { it.isEmpty() }
+        ?.let { GroupMeImage(it) }
+}
+
+internal fun JsonPrimitive.toGroupMeImage(): GroupMeImage? {
+    return contentOrNull?.toGroupMeImage()
+}

@@ -15,7 +15,7 @@ internal fun DirectSentMessageInfo(
     sender: NamedUserInfo = NamedUserInfo(
         userId = json.getPrimitive("sender_id").content,
         name = json.getPrimitive("name").content,
-        avatar = json.getPrimitive("avatar_url").content.toGroupMeImage()
+        avatar = json.getPrimitive("avatar_url").toGroupMeImage()
     ),
     attachments: List<Attachment> = json.getArray("attachments").map {
         Attachment(it.jsonObject)

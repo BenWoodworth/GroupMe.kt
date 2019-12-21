@@ -6,7 +6,7 @@ internal fun NamedUserInfo(
     userId: String,
     name: String,
     nickname: String = name,
-    avatar: GroupMeImage
+    avatar: GroupMeImage?
 ): NamedUserInfo = NamedUserInfoImpl(
     userId = userId,
     name = name,
@@ -18,7 +18,7 @@ private class NamedUserInfoImpl(
     userId: String,
     override val name: String,
     nickname: String,
-    avatar: GroupMeImage
+    avatar: GroupMeImage?
 ) : NamedUserInfo, UserInfo by UserInfo(
     userId = userId,
     nickname = nickname,

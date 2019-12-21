@@ -6,7 +6,7 @@ import net.benwoodworth.groupme.client.media.GroupMeImage
 interface ChatInfo {
     val json: JsonObject
     val messageCount: Int
-    val image: GroupMeImage
+    val image: GroupMeImage?
     val name: String
     val lastMessage: SentMessage
 }

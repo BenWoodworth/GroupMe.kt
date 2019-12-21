@@ -26,7 +26,7 @@ internal class GroupMeClient_UsersImpl : GroupMeClient_Users {
         return NamedUserInfo(
             userId = userData.getPrimitive("user_id").content,
             name = userData.getPrimitive("name").content,
-            avatar = userData.getPrimitive("avatar_url").content.toGroupMeImage()
+            avatar = userData.getPrimitive("avatar_url").toGroupMeImage()
         )
     }
 
@@ -47,7 +47,7 @@ internal class GroupMeClient_UsersImpl : GroupMeClient_Users {
             json = userJson,
             userId = userJson.getPrimitive("user_id").content,
             name = userJson.getPrimitive("name").content,
-            avatar = userJson.getPrimitive("avatar_url").content.toGroupMeImage()
+            avatar = userJson.getPrimitive("avatar_url").toGroupMeImage()
         )
     }
 }
