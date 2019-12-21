@@ -14,8 +14,8 @@ import net.benwoodworth.groupme.client.chat.SentMessage
 
 class DirectChatContext internal constructor(
     override val chat: DirectChat,
-    client: GroupMeClient
-) : ChatContext(client) {
+    override val client: GroupMeClient
+) : ChatContext {
     override suspend fun sendMessage(message: Message): DirectSentMessageInfo {
         @Serializable
         class Request(val direct_message: JsonObject)

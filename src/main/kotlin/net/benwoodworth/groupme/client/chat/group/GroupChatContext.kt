@@ -15,8 +15,8 @@ import net.benwoodworth.groupme.client.media.GroupMeImage
 
 open class GroupChatContext internal constructor(
     override val chat: GroupChat,
-    client: GroupMeClient
-) : ChatContext(client) {
+    override val client: GroupMeClient
+) : ChatContext {
     override suspend fun sendMessage(message: Message): GroupSentMessageInfo {
         @Serializable
         class Request(val message: JsonObject)

@@ -6,18 +6,18 @@ import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.client.GroupMeClient
 
 @GroupMeScope
-abstract class ChatContext internal constructor(
+interface ChatContext {
     val client: GroupMeClient
-) {
-    abstract val chat: Chat
 
-    abstract suspend fun sendMessage(message: Message): SentMessageInfo
+    val chat: Chat
+
+    suspend fun sendMessage(message: Message): SentMessageInfo
     suspend fun Message.send() = sendMessage(this)
 
-    abstract fun getMessages(): Flow<SentMessageInfo>
-    abstract fun getMessagesBefore(before: SentMessage): Flow<SentMessageInfo>
-    abstract fun getMessagesSince(since: SentMessage): Flow<SentMessageInfo>
-    abstract fun getMessagesAfter(after: SentMessage): Flow<SentMessageInfo>
+    fun getMessages(): Flow<SentMessageInfo>
+    fun getMessagesBefore(before: SentMessage): Flow<SentMessageInfo>
+    fun getMessagesSince(since: SentMessage): Flow<SentMessageInfo>
+    fun getMessagesAfter(after: SentMessage): Flow<SentMessageInfo>
 
     suspend fun getUserInfo(user: User) = client.getUserInfo(user)
     suspend fun User.getInfo() = getUserInfo(this)
