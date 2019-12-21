@@ -39,4 +39,10 @@ private class DirectChatInfoImpl(
 ) : DirectChatInfo, DirectChat by DirectChat(
     fromUser = fromUser,
     toUser = toUser
-)
+) {
+    override val image: GroupMeImage
+        get() = toUser.avatar
+
+    override val name: String
+        get() = toUser.name
+}
