@@ -148,26 +148,26 @@ class GroupMeClient internal constructor(
         } while (responseData.response!!.any())
     }
 
-    fun getChatClient(chat: Chat): ChatContext {
+    fun getChatContext(chat: Chat): ChatContext {
         throw IllegalStateException("Unable to create client for $chat")
     }
 
-    val Chat.client
-        get() = getChatClient(this)
+    val Chat.context
+        get() = getChatContext(this)
 
-    fun getChatClient(chat: DirectChat): DirectChatContext {
+    fun getChatContext(chat: DirectChat): DirectChatContext {
         return DirectChatContext(chat, this)
     }
 
-    val DirectChat.client
-        get() = getChatClient(this)
+    val DirectChat.context
+        get() = getChatContext(this)
 
-    fun getChatClient(chat: GroupChat): GroupChatContext {
+    fun getChatContext(chat: GroupChat): GroupChatContext {
         return GroupChatContext(chat, this)
     }
 
-    val GroupChat.client
-        get() = getChatClient(this)
+    val GroupChat.context
+        get() = getChatContext(this)
 
 
     suspend fun likeMessage() {
