@@ -8,6 +8,7 @@ import kotlinx.serialization.list
 import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.bot.Bot
+import net.benwoodworth.groupme.client.bot.BotContext
 import net.benwoodworth.groupme.client.bot.BotInfo
 import net.benwoodworth.groupme.client.chat.group.GroupChat
 import net.benwoodworth.groupme.client.media.GroupMeImage
@@ -71,5 +72,9 @@ internal class GroupMeClient_BotsImpl : GroupMeClient_Bots {
         callbackUrl: String?
     ): BotInfo {
         TODO()
+    }
+
+    override fun getBotContext(bot: Bot): BotContext {
+        return BotContext(bot, client.httpClient, client.json)
     }
 }
