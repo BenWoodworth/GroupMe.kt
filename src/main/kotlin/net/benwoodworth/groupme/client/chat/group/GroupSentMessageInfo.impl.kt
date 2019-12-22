@@ -8,8 +8,8 @@ import net.benwoodworth.groupme.client.chat.SentMessageInfo
 import net.benwoodworth.groupme.client.media.toGroupMeImage
 
 internal fun GroupSentMessageInfo(
-    chat: GroupChat,
     json: JsonObject,
+    chat: GroupChat = GroupChat(json.getPrimitive("group_id").content),
     messageId: String = json.getPrimitive("id").content,
     sender: UserInfo = UserInfo(
         userId = json.getPrimitive("sender_id").content,

@@ -30,7 +30,7 @@ open class GroupChatContext internal constructor(
         val responseJson = client.json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
 
         return responseJson.response!!.getObject("message")
-            .let { GroupSentMessageInfo(chat, it) }
+            .let { GroupSentMessageInfo(it) }
     }
 
     private suspend fun fetchMessages(
@@ -64,7 +64,7 @@ open class GroupChatContext internal constructor(
         )
 
         return responseJson.response!!.messages
-            .map { GroupSentMessageInfo(chat, it) }
+            .map { GroupSentMessageInfo(it) }
     }
 
     override fun getMessages(): Flow<GroupSentMessageInfo> = flow {
