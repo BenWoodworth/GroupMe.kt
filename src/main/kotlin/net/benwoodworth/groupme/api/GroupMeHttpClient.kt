@@ -2,7 +2,7 @@ package net.benwoodworth.groupme.api
 
 internal class GroupMeHttpClient(
     private val httpClient: HttpClient,
-    apiKey: String,
+    apiKey: String?,
     private val apiV3UrlBase: String,
     private val apiV2UrlBase: String
 ) : HttpClient by httpClient {

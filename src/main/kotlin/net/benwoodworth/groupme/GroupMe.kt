@@ -8,22 +8,26 @@ import net.benwoodworth.groupme.api.GroupMeHttpClient
 import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.GroupMeClient
+import net.benwoodworth.groupme.client.bot.CallbackHandler
+import net.benwoodworth.groupme.client.bot.CallbackServer
 
 object GroupMe {
-    suspend fun getClient(apiToken: String): GroupMeClient {
-        val groupMeHttpClient = GroupMeHttpClient(
-            DefaultHttpClient(),
-            apiToken,
-            "https://api.groupme.com/v3",
-            "https://v2.groupme.com"
-        )
+    private val json = Json(JsonConfiguration.Stable.copy(strictMode = false))
 
-        val json = Json(JsonConfiguration.Stable.copy(strictMode = false))
+    private fun createHttpClient(apiToken: String? = null) = GroupMeHttpClient(
+        DefaultHttpClient(),
+        apiToken,
+        "https://api.groupme.com/v3",
+        "https://v2.groupme.com"
+    )
+
+    suspend fun getClient(apiToken: String): GroupMeClient {
+        val httpClient = createHttpClient(apiToken)
 
         @Serializable
         class MeResponse(val id: String)
 
-        val meResponse = groupMeHttpClient.sendApiV3Request(
+        val meResponse = httpClient.sendApiV3Request(
             method = HttpMethod.Get,
             endpoint = "/users/me"
         )
@@ -35,10 +39,15 @@ object GroupMe {
 
         val authenticatedUser = User(responseJson.response!!.id)
 
-        return GroupMeClient(authenticatedUser, groupMeHttpClient, json)
+        return GroupMeClient(authenticatedUser, httpClient, json)
     }
 
     suspend inline fun getClient(apiToken: String, block: GroupMeClient.() -> Unit) {
         (getClient(apiToken)) { block() }
+    }
+
+    suspend fun startCallbackServer(port: Int, callbackHandler: CallbackHandler) {
+        val server = CallbackServer(port, createHttpClient(), json, callbackHandler)
+        server.start()
     }
 }
