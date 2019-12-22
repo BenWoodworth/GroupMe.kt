@@ -1,4 +1,3 @@
-rootProject.name = 'GroupMe.kt3'
-
+rootProject.name = 'groupme-kt'
 
 enableFeaturePreview('GRADLE_METADATA')
