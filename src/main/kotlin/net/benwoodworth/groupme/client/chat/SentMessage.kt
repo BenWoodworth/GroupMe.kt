@@ -12,3 +12,25 @@ interface SentMessage {
 
     override fun toString(): String
 }
+
+private class SentMessageImpl(
+    override val messageId: String
+) : SentMessage {
+    override fun equals(other: Any?): Boolean {
+        return other is SentMessage && messageId == other.messageId
+    }
+
+    override fun hashCode(): Int {
+        return messageId.hashCode()
+    }
+
+    override fun toString(): String {
+        return "SentMessage($messageId)"
+    }
+}
+
+fun SentMessage(
+    messageId: String
+): SentMessage = SentMessageImpl(
+    messageId = messageId
+)
