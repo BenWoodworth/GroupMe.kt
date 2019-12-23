@@ -26,6 +26,17 @@ fun Message(
     sourceGuid = sourceGuid
 )
 
+fun Message.toMessageText(): MessageText? {
+    return text?.let { text ->
+        MessageText(
+            text = text,
+            mentions = attachments
+                .filterIsInstance<Attachment.Mentions>()
+                .flatMap { it.mentions }
+        )
+    }
+}
+
 private class MessageImpl(
     override val json: JsonObject,
     override val text: String?,
