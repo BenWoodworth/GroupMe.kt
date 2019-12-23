@@ -4,6 +4,6 @@ import net.benwoodworth.groupme.User
 
 data class Mention(
     val user: User,
-    val location: Int,
+    val start: Int,
     val length: Int
 )

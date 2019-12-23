@@ -145,7 +145,7 @@ sealed class Attachment {
             json {
                 "type" to "emoji"
                 "user_ids" to mentions.map { it.user.userId }
-                "loci" to mentions.map { listOf(it.location, it.length) }
+                "loci" to mentions.map { listOf(it.start, it.length) }
             }
         )
 
@@ -158,7 +158,7 @@ sealed class Attachment {
                     val loc = loci[i].jsonArray
                     Mention(
                         user = User(userIds[i].primitive.content),
-                        location = loc[0].int,
+                        start = loc[0].int,
                         length = loc[1].int
                     )
                 }
