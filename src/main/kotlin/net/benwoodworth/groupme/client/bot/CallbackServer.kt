@@ -57,6 +57,9 @@ internal class CallbackServer(
             return
         }
 
+        exchange.sendResponseHeaders(200, 0L)
+        exchange.responseBody.close()
+
         runBlocking {
             try {
                 context.run { callbackHandler(callback) }
@@ -64,8 +67,5 @@ internal class CallbackServer(
                 e.printStackTrace()
             }
         }
-
-        exchange.sendResponseHeaders(200, 0L)
-        exchange.responseBody.close()
     }
 }
