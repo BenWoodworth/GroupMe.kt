@@ -1,22 +1,92 @@
 package net.benwoodworth.groupme.client.chat
 
 import net.benwoodworth.groupme.User
+import net.benwoodworth.groupme.UserInfo
+import java.lang.Integer.max
+import java.lang.Integer.min
 
 // TODO Emoji
 data class MessageText(
     val text: String,
     val mentions: List<Mention> = emptyList()
 ) : CharSequence by text {
-    constructor(text: String, vararg mention: User) : this(
-        text = text,
-        mentions = mention.map { Mention(it, 0, text.length) }
-    )
+    companion object {
+        /**
+         * Concatenates values to create a MessageText instance.
+         *
+         * `value`:
+         * - `is MessageText` -> concatenates MessageText value
+         * - `is Message` ->     concatenates `"${value.text}"`, with mentions
+         * - `is UserInfo` ->    concatenates `"@${value.nickname}"`, with mention
+         * - `is User` ->        concatenates `"@${value.userId}"`, with mention
+         * - `else` ->           concatenates `"$value"`
+         */
+        fun concat(vararg values: Any?): MessageText {
+            when {
+                values.isEmpty() -> return MessageText("")
+                values.size == 1 -> when (val value = values.first()) {
+                    is MessageText -> return value
+                    is Message, is User -> {
+                    }
+                    else -> return MessageText(value.toString())
+                }
+            }
 
-    fun getMentions(atIndex: Int): List<User> {
+            val textBuilder = StringBuilder()
+            val mentions = mutableListOf<Mention>()
+
+            fun append(value: Any?): Unit {
+                when (value) {
+                    is MessageText -> {
+                        value.mentions.forEach {
+                            val start = max(0, it.start)
+                            val end = min(value.text.length, it.end)
+
+                            if (start <= end) {
+                                mentions += Mention(it.user, textBuilder.length + start, end - start)
+                            }
+                        }
+                        textBuilder.append(value.text)
+                    }
+                    is Message -> {
+                        val text = value.text
+                        if (text != null) {
+                            val messageText = MessageText(
+                                text = text,
+                                mentions = value.attachments
+                                    .filterIsInstance<Attachment.Mentions>()
+                                    .flatMap { it.mentions }
+                            )
+                            append(messageText)
+                        }
+                    }
+                    is User -> {
+                        val name = when (value) {
+                            is UserInfo -> value.nickname
+                            else -> value.userId
+                        }
+                        mentions += Mention(value, textBuilder.length, name.length + 1)
+                        textBuilder.append('@', name)
+                    }
+                    else -> {
+                        textBuilder.append(value)
+                    }
+                }
+            }
+
+            values.forEach { append(it) }
+            return MessageText(
+                text = textBuilder.toString(),
+                mentions = mentions.toList()
+            )
+        }
+    }
+
+    fun getMentionsAt(index: Int): List<User> {
         return mentions.mapNotNull { mention ->
             mention
-                .takeIf { atIndex >= it.start }
-                ?.takeIf { atIndex < (it.start + it.length) }
+                .takeIf { index >= it.start }
+                ?.takeIf { index < (it.start + it.length) }
                 ?.user
         }
     }
@@ -31,53 +101,6 @@ data class MessageText(
                     .map { it.copy(start = it.start - startIndex) }
             )
         }
-    }
-
-    operator fun plus(other: MessageText): MessageText {
-        return when {
-            other.isEmpty() -> this
-            isEmpty() -> other
-            else -> {
-                val newText = text + other.text
-                val newOtherMentions = other.mentions
-                    .map { it.copy(start = length + it.start) }
-
-                MessageText(
-                    text = newText,
-                    mentions = (mentions + newOtherMentions)
-                )
-            }
-        }
-    }
-
-    operator fun plus(other: String): MessageText {
-        return when {
-            other.isEmpty() -> this
-            isEmpty() -> MessageText(other)
-            else -> copy(text = text + other)
-        }
-    }
-
-    operator fun plus(other: Mention): MessageText {
-        return copy(mentions = mentions + other)
-    }
-
-    operator fun plus(other: Iterable<Mention>): MessageText {
-        return when {
-            other.none() -> return this
-            else -> copy(mentions = (mentions + other))
-        }
-    }
-
-    operator fun plus(other: Message): MessageText {
-        return when (val otherText = other.toMessageText()) {
-            null -> this
-            else -> this + otherText
-        }
-    }
-
-    operator fun plus(other: Any?): MessageText {
-        return this + other.toString()
     }
 
     fun toMessage(
@@ -95,6 +118,16 @@ data class MessageText(
     }
 }
 
-fun String.toMessageText(vararg mention: User): MessageText {
-    return MessageText(this, *mention)
+fun Any?.toMessageText(vararg mention: User): MessageText {
+    val messageText = MessageText.concat(this)
+
+    return if (mention.isEmpty()) {
+        messageText
+    } else {
+        messageText.copy(
+            mentions = messageText.mentions + mention.map { user ->
+                Mention(user, 0, messageText.length)
+            }
+        )
+    }
 }
