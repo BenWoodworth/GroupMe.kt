@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$version_serialization"
+    api "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$version_serialization"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$version_coroutines"
 }
 
