@@ -1,11 +1,11 @@
 package net.benwoodworth.groupme.client
 
-import net.benwoodworth.groupme.client.chat.SentMessage
+import net.benwoodworth.groupme.client.chat.SentMessageInfo
 
 interface GroupMeClient_Messages {
-    suspend fun likeMessage(message: SentMessage)
-    suspend fun unlikeMessage(message: SentMessage)
+    suspend fun likeMessage(message: SentMessageInfo)
+    suspend fun unlikeMessage(message: SentMessageInfo)
 
-    suspend fun SentMessage.like() = likeMessage(this)
-    suspend fun SentMessage.unlike() = unlikeMessage(this)
+    suspend fun SentMessageInfo.like() = likeMessage(this)
+    suspend fun SentMessageInfo.unlike() = unlikeMessage(this)
 }
