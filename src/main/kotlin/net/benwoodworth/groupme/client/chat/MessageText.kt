@@ -22,20 +22,17 @@ data class MessageText(
          * - `else` ->           concatenates `"$value"`
          */
         fun concat(vararg values: Any?): MessageText {
-            when {
-                values.isEmpty() -> return MessageText("")
-                values.size == 1 -> when (val value = values.first()) {
-                    is MessageText -> return value
-                    is Message, is User -> {
-                    }
-                    else -> return MessageText(value.toString())
-                }
-            }
+            return concat(values.asIterable())
+        }
 
+        /**
+         * @see [concat]
+         */
+        fun concat(values: Iterable<Any?>): MessageText {
             val textBuilder = StringBuilder()
             val mentions = mutableListOf<Mention>()
 
-            fun append(value: Any?): Unit {
+            fun append(value: Any?) {
                 when (value) {
                     is MessageText -> {
                         value.mentions.forEach {
