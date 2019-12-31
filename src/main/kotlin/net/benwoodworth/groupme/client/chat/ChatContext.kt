@@ -24,9 +24,9 @@ interface ChatContext {
 
     suspend fun getAuthenticatedUserInfo() = client.getAuthenticatedUserInfo()
 
-    suspend fun likeMessage(message: SentMessage) = client.likeMessage(message)
-    suspend fun unlikeMessage(message: SentMessage) = client.unlikeMessage(message)
+    suspend fun likeMessage(message: SentMessageInfo) = client.likeMessage(message)
+    suspend fun unlikeMessage(message: SentMessageInfo) = client.unlikeMessage(message)
 
-    suspend fun SentMessage.like() = likeMessage(this)
-    suspend fun SentMessage.unlike() = unlikeMessage(this)
+    suspend fun SentMessageInfo.like() = likeMessage(this)
+    suspend fun SentMessageInfo.unlike() = unlikeMessage(this)
 }
