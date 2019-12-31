@@ -34,15 +34,8 @@ import net.benwoodworth.groupme.client.media.toGroupMeImage
 class GroupMeClient internal constructor(
     val authenticatedUser: User,
     internal val httpClient: GroupMeHttpClient,
-    internal val json: Json,
-
-    private val users: GroupMeClient_UsersImpl = GroupMeClient_UsersImpl()
-) : GroupMeClient_Users by users {
-
-    init {
-        users.client = this
-    }
-
+    internal val json: Json
+) {
     inline operator fun invoke(block: GroupMeClient.() -> Unit) = block()
 
     //region bots
@@ -255,6 +248,53 @@ class GroupMeClient internal constructor(
 
     suspend fun SentMessageInfo.like() = likeMessage(this)
     suspend fun SentMessageInfo.unlike() = unlikeMessage(this)
+
+    //endregion
+
+    //region users
+
+    suspend fun getUserInfo(user: User): NamedUserInfo {
+        val response = httpClient.sendApiV2Request(
+            method = HttpMethod.Get,
+            endpoint = "/users/${user.userId}"
+        )
+
+        val responseData = json.parse(
+            deserializer = ResponseEnvelope.serializer(JsonObject.serializer()),
+            string = response.data
+        )
+
+        val userData = responseData.response!!.getObject("user")
+
+        return NamedUserInfo(
+            userId = userData.getPrimitive("user_id").content,
+            name = userData.getPrimitive("name").content,
+            avatar = userData.getPrimitive("avatar_url").toGroupMeImage()
+        )
+    }
+
+    suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo {
+        val response = httpClient.sendApiV3Request(
+            method = HttpMethod.Get,
+            endpoint = "/users/me"
+        )
+
+        val responseData = json.parse(
+            deserializer = ResponseEnvelope.serializer(JsonObject.serializer()),
+            string = response.data
+        )
+
+        val userJson = responseData.response!!.jsonObject
+
+        return AuthenticatedUserInfo(
+            json = userJson,
+            userId = userJson.getPrimitive("user_id").content,
+            name = userJson.getPrimitive("name").content,
+            avatar = userJson.getPrimitive("avatar_url").toGroupMeImage()
+        )
+    }
+
+    suspend fun User.getInfo() = getUserInfo(this)
 
     //endregion
 }
