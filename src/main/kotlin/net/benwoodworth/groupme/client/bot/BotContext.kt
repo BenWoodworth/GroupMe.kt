@@ -10,23 +10,14 @@ import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.client.chat.Message
 
 @GroupMeScope
-interface BotContext {
-    val bot: Bot
-
+class BotContext internal constructor(
+    val bot: Bot,
+    internal val httpClient: GroupMeHttpClient,
+    internal val json: Json
+) {
     suspend operator fun invoke(block: suspend BotContext.() -> Unit) = block()
 
-    suspend fun sendMessage(message: Message)
-
-    suspend fun Message.send() = sendMessage(this)
-}
-
-@GroupMeScope
-private class BotContextImpl(
-    override val bot: Bot,
-    val httpClient: GroupMeHttpClient,
-    val json: Json
-) : BotContext {
-    override suspend fun sendMessage(message: Message) {
+    suspend fun sendMessage(message: Message) {
         val newEntries = mapOf("bot_id" to JsonPrimitive(bot.botId))
         val appendedjson = JsonObject(message.json + newEntries)
 
@@ -36,14 +27,6 @@ private class BotContextImpl(
             body = json.stringify(JsonObjectSerializer, appendedjson)
         )
     }
-}
 
-internal fun BotContext(
-    bot: Bot,
-    httpClient: GroupMeHttpClient,
-    json: Json
-): BotContext = BotContextImpl(
-    bot = bot,
-    httpClient = httpClient,
-    json = json
-)
+    suspend fun Message.send() = sendMessage(this)
+}
