@@ -20,6 +20,7 @@ import net.benwoodworth.groupme.client.bot.BotInfo
 import net.benwoodworth.groupme.client.chat.Chat
 import net.benwoodworth.groupme.client.chat.ChatContext
 import net.benwoodworth.groupme.client.chat.ChatInfo
+import net.benwoodworth.groupme.client.chat.SentMessageInfo
 import net.benwoodworth.groupme.client.chat.direct.DirectChat
 import net.benwoodworth.groupme.client.chat.direct.DirectChatContext
 import net.benwoodworth.groupme.client.chat.direct.DirectChatInfo
@@ -35,13 +36,10 @@ class GroupMeClient internal constructor(
     internal val httpClient: GroupMeHttpClient,
     internal val json: Json,
 
-    private val messages: GroupMeClient_MessagesImpl = GroupMeClient_MessagesImpl(),
     private val users: GroupMeClient_UsersImpl = GroupMeClient_UsersImpl()
-) : GroupMeClient_Messages by messages,
-    GroupMeClient_Users by users {
+) : GroupMeClient_Users by users {
 
     init {
-        messages.client = this
         users.client = this
     }
 
@@ -236,6 +234,27 @@ class GroupMeClient internal constructor(
         chatId: String,
         block: suspend GroupChatContext.() -> Unit
     ) = (GroupChat(chatId)) { block() }
+
+    //endregion
+
+    //region messages
+
+    suspend fun likeMessage(message: SentMessageInfo) {
+        httpClient.sendApiV3Request(
+            method = HttpMethod.Post,
+            endpoint = "/messages/${message.chat.chatId}/${message.messageId}/like"
+        )
+    }
+
+    suspend fun unlikeMessage(message: SentMessageInfo) {
+        httpClient.sendApiV3Request(
+            method = HttpMethod.Post,
+            endpoint = "/messages/${message.chat.chatId}/${message.messageId}/unlike"
+        )
+    }
+
+    suspend fun SentMessageInfo.like() = likeMessage(this)
+    suspend fun SentMessageInfo.unlike() = unlikeMessage(this)
 
     //endregion
 }
