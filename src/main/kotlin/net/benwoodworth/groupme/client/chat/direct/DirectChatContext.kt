@@ -43,7 +43,7 @@ class DirectChatContext internal constructor(
         @Serializable
         class Response(
             val count: Int,
-            val messages: List<JsonObject>
+            val direct_messages: List<JsonObject>
         )
 
         val response = client.httpClient.sendApiV3Request(
@@ -66,7 +66,7 @@ class DirectChatContext internal constructor(
             response.data
         )
 
-        return responseJson.response!!.messages
+        return responseJson.response!!.direct_messages
             .map { DirectSentMessageInfo(chat, it) }
     }
 

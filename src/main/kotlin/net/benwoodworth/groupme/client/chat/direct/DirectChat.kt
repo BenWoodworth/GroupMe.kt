@@ -22,7 +22,7 @@ private class DirectChatImpl(
 fun DirectChat(
     fromUser: User,
     toUser: User
-): DirectChat = DirectChat(
+): DirectChat = DirectChatImpl(
     fromUser = fromUser,
     toUser = toUser
 )
