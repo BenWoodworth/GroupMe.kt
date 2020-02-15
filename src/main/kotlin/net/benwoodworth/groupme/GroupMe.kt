@@ -27,7 +27,8 @@ import net.benwoodworth.groupme.client.media.GroupMeImage
 import net.benwoodworth.groupme.client.media.toGroupMeImage
 
 class GroupMe private constructor(
-    val authenticatedUser: User,
+    /** The authenticated user. */
+    val user: User,
     internal val httpClient: GroupMeHttpClient,
     internal val json: Json
 ) {
@@ -188,7 +189,7 @@ class GroupMe private constructor(
                     )
                 }
 
-                emit(DirectChatInfo(it, authenticatedUser, otherUser))
+                emit(DirectChatInfo(it, user, otherUser))
             }
 
             page++
@@ -515,10 +516,14 @@ class GroupMe private constructor(
     //endregion
 
     //region users
-    suspend fun getUserInfo(user: User): NamedUserInfo {
+    suspend fun User.getInfo(): NamedUserInfo {
+        if (this == user) {
+            return getAuthenticatedUserInfo()
+        }
+
         val response = httpClient.sendApiV2Request(
             method = HttpMethod.Get,
-            endpoint = "/users/${user.userId}"
+            endpoint = "/users/${userId}"
         )
 
         val responseData = json.parse(
