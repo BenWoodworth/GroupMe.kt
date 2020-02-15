@@ -540,7 +540,25 @@ class GroupMe private constructor(
         )
     }
 
-    suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo {
+    //region User.getInfo(chat)
+    suspend fun User.getInfo(chat: Chat): NamedUserInfo {
+        return when (chat) {
+            is DirectChat -> getInfo(chat)
+            is GroupChat -> getInfo(chat)
+            else -> throw IllegalStateException()
+        }
+    }
+
+    suspend fun User.getInfo(chat: DirectChat): NamedUserInfo {
+        return getInfo()
+    }
+
+    suspend fun User.getInfo(chat: GroupChat): NamedUserInfo {
+        TODO()
+    }
+    //endregion
+
+    private suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo {
         val response = httpClient.sendApiV3Request(
             method = HttpMethod.Get,
             endpoint = "/users/me"
@@ -560,7 +578,5 @@ class GroupMe private constructor(
             avatar = userJson.getPrimitive("avatar_url").toGroupMeImage()
         )
     }
-
-    suspend fun User.getInfo() = getUserInfo(this)
     //endregion
 }
