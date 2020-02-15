@@ -6,7 +6,6 @@ import net.benwoodworth.groupme.UserInfo
 import java.util.*
 
 interface SentMessageInfo : SentMessage, Message {
-    val chat: Chat
     val sender: UserInfo
     val likes: List<User>
 
@@ -25,7 +24,8 @@ private class SentMessageInfoImpl(
     override val likes: List<User>,
     override val created: Date
 ) : SentMessageInfo, SentMessage by SentMessage(
-    messageId = messageId
+    messageId = messageId,
+    chat = chat
 )
 
 internal fun SentMessageInfo(

@@ -1,6 +1,7 @@
 package net.benwoodworth.groupme.client.chat
 
 interface SentMessage {
+    val chat: Chat
     val messageId: String
 
     /**
@@ -14,6 +15,7 @@ interface SentMessage {
 }
 
 private class SentMessageImpl(
+    override val chat: Chat,
     override val messageId: String
 ) : SentMessage {
     override fun equals(other: Any?): Boolean {
@@ -29,8 +31,10 @@ private class SentMessageImpl(
     }
 }
 
-fun SentMessage(
+internal fun SentMessage(
+    chat: Chat,
     messageId: String
 ): SentMessage = SentMessageImpl(
+    chat = chat,
     messageId = messageId
 )
