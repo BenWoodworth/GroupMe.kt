@@ -158,6 +158,10 @@ class GroupMe private constructor(
     //endregion
 
     //region chats
+    fun GroupMe.DirectChat(toUser: User): DirectChat {
+        return DirectChat(user, toUser)
+    }
+
     //region getChats()
     fun getChats(): Flow<ChatInfo> = flow<ChatInfo> {
         getGroupChats().collect { emit(it) }
