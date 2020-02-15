@@ -567,8 +567,10 @@ class GroupMe private constructor(
         return getInfo()
     }
 
-    suspend fun User.getInfo(chat: GroupChat): NamedUserInfo {
-        TODO()
+    suspend fun User.getInfo(chat: GroupChat): NamedUserInfo { // TODO Get only the requested user
+        return chat.getMembers()
+            .filter { it == this }
+            .single()
     }
     //endregion
 
