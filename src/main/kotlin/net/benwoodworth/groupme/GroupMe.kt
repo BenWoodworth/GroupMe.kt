@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.list
 import net.benwoodworth.groupme.api.DefaultHttpClient
 import net.benwoodworth.groupme.api.GroupMeHttpClient
@@ -15,16 +16,13 @@ import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.AuthenticatedUserInfo
 import net.benwoodworth.groupme.client.bot.*
-import net.benwoodworth.groupme.client.chat.Chat
-import net.benwoodworth.groupme.client.chat.ChatContext
-import net.benwoodworth.groupme.client.chat.ChatInfo
-import net.benwoodworth.groupme.client.chat.SentMessageInfo
+import net.benwoodworth.groupme.client.chat.*
 import net.benwoodworth.groupme.client.chat.direct.DirectChat
-import net.benwoodworth.groupme.client.chat.direct.DirectChatContext
 import net.benwoodworth.groupme.client.chat.direct.DirectChatInfo
+import net.benwoodworth.groupme.client.chat.direct.DirectSentMessageInfo
 import net.benwoodworth.groupme.client.chat.group.GroupChat
-import net.benwoodworth.groupme.client.chat.group.GroupChatContext
 import net.benwoodworth.groupme.client.chat.group.GroupChatInfo
+import net.benwoodworth.groupme.client.chat.group.GroupSentMessageInfo
 import net.benwoodworth.groupme.client.media.GroupMeImage
 import net.benwoodworth.groupme.client.media.toGroupMeImage
 
@@ -158,6 +156,7 @@ class GroupMe private constructor(
     //endregion
 
     //region chats
+    //region getChats()
     fun getChats(): Flow<ChatInfo> = flow<ChatInfo> {
         getGroupChats().collect { emit(it) }
         getDirectChats().collect { emit(it) }
@@ -221,66 +220,298 @@ class GroupMe private constructor(
             page++
         } while (responseData.response!!.any())
     }
+    //endregion
 
-    fun getChatContext(chat: Chat): ChatContext = when (chat) {
-        is DirectChat -> getChatContext(chat)
-        is GroupChat -> getChatContext(chat)
-        else -> throw IllegalStateException("Unable to create client for $chat")
+    //region Chat.fetchMessages(beforeId, sinceId, afterId)
+    private suspend fun DirectChat.fetchMessages(
+        beforeId: String? = null,
+        sinceId: String? = null,
+        afterId: String? = null
+    ): List<DirectSentMessageInfo> {
+        @Serializable
+        class DirectMessagesResponse(
+            val count: Int,
+            val direct_messages: List<JsonObject>
+        )
+
+        val response = httpClient.sendApiV3Request(
+            method = HttpMethod.Get,
+            endpoint = "/direct_messages",
+            params = mapOf(
+                "other_user_id" to toUser.userId,
+                "before_id" to beforeId,
+                "since_id" to sinceId,
+                "after_id" to afterId
+            )
+        )
+
+        if (response.code == 304) {
+            return emptyList()
+        }
+
+        val responseJson = json.parse(
+            ResponseEnvelope.serializer(DirectMessagesResponse.serializer()),
+            response.data
+        )
+
+        return responseJson.response!!.direct_messages
+            .map { DirectSentMessageInfo(this, it) }
     }
 
+    private suspend fun GroupChat.fetchMessages(
+        beforeId: String? = null,
+        sinceId: String? = null,
+        afterId: String? = null
+    ): List<GroupSentMessageInfo> {
+        @Serializable
+        class GroupMessagesResponse(
+            val count: Int,
+            val messages: List<JsonObject>
+        )
 
-    fun getChatContext(chat: DirectChat): DirectChatContext {
-        return DirectChatContext(chat, this)
+        val response = httpClient.sendApiV3Request(
+            method = HttpMethod.Get,
+            endpoint = "/groups/${chatId}/messages",
+            params = mapOf(
+                "before_id" to beforeId,
+                "since_id" to sinceId,
+                "after_id" to afterId
+            )
+        )
+
+        if (response.code == 304) {
+            return emptyList()
+        }
+
+        val responseJson = json.parse(
+            ResponseEnvelope.serializer(GroupMessagesResponse.serializer()),
+            response.data
+        )
+
+        return responseJson.response!!.messages
+            .map { GroupSentMessageInfo(it) }
+    }
+    //endregion
+
+    //region Chat.sendMessage(message)
+    suspend fun Chat.sendMessage(message: Message): SentMessageInfo {
+        return when (this) {
+            is DirectChat -> sendMessage(message)
+            is GroupChat -> sendMessage(message)
+            else -> throw IllegalStateException()
+        }
     }
 
+    suspend fun GroupChat.sendMessage(message: Message): GroupSentMessageInfo {
+        @Serializable
+        class GroupMessagesRequest(val message: JsonObject)
 
-    fun getChatContext(chat: GroupChat): GroupChatContext {
-        return GroupChatContext(chat, this)
+        val response = httpClient.sendApiV3Request(
+            method = HttpMethod.Post,
+            endpoint = "/groups/${chatId}/messages",
+            body = json.stringify(GroupMessagesRequest.serializer(), GroupMessagesRequest(message.json))
+        )
+
+        val responseJson = json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
+
+        return responseJson.response!!.getObject("message")
+            .let { GroupSentMessageInfo(it) }
     }
 
-    val Chat.context: ChatContext
-        get() = getChatContext(this)
+    suspend fun DirectChat.sendMessage(message: Message): DirectSentMessageInfo {
+        @Serializable
+        class DirectMessagesRequest(val direct_message: JsonObject)
 
-    val DirectChat.context: DirectChatContext
-        get() = getChatContext(this)
+        val newEntries = mapOf("recipient_id" to JsonPrimitive(toUser.userId))
+        val appendedjson = JsonObject(message.json + newEntries)
 
-    val GroupChat.context: GroupChatContext
-        get() = getChatContext(this)
+        val response = httpClient.sendApiV3Request(
+            method = HttpMethod.Post,
+            endpoint = "/direct_messages",
+            body = json.stringify(DirectMessagesRequest.serializer(), DirectMessagesRequest(appendedjson))
+        )
 
-    suspend operator fun <T : ChatContext> T.invoke(block: suspend T.() -> Unit) = block()
+        return json
+            .parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
+            .response!!.getObject("direct_message")
+            .let { DirectSentMessageInfo(this, it) }
+    }
+    //endregion
 
-    suspend operator fun DirectChat.invoke(block: suspend DirectChatContext.() -> Unit) = context { block() }
-    suspend operator fun GroupChat.invoke(block: suspend GroupChatContext.() -> Unit) = context { block() }
+    //region Chat.getMessages()
+    fun Chat.getMessages(): Flow<SentMessageInfo> {
+        return when (this) {
+            is DirectChat -> getMessages()
+            is GroupChat -> getMessages()
+            else -> throw IllegalStateException()
+        }
+    }
 
-    suspend fun DirectChat(
-        fromUser: User,
-        toUser: User,
-        block: suspend DirectChatContext.() -> Unit
-    ) = (DirectChat(fromUser, toUser)) { block() }
+    fun DirectChat.getMessages(): Flow<DirectSentMessageInfo> = flow {
+        var messages = fetchMessages()
+        var lastMessage = messages.lastOrNull()
 
-    suspend fun GroupChat(
-        chatId: String,
-        block: suspend GroupChatContext.() -> Unit
-    ) = (GroupChat(chatId)) { block() }
+        while (lastMessage != null) {
+            messages.forEach { emit(it) }
+
+            messages = fetchMessages(beforeId = lastMessage.messageId)
+            lastMessage = messages.lastOrNull()
+        }
+    }
+
+    fun GroupChat.getMessages(): Flow<GroupSentMessageInfo> = flow {
+        var messages = fetchMessages()
+        var lastMessage = messages.lastOrNull()
+
+        while (lastMessage != null) {
+            messages.forEach { emit(it) }
+
+            messages = fetchMessages(beforeId = lastMessage.messageId)
+            lastMessage = messages.lastOrNull()
+        }
+    }
+    //endregion
+
+    //region Chat.getMessagesBefore(before)
+    fun Chat.getMessagesBefore(before: SentMessage): Flow<SentMessageInfo> {
+        return when (this) {
+            is DirectChat -> getMessagesBefore(before)
+            is GroupChat -> getMessagesBefore(before)
+            else -> throw IllegalStateException()
+        }
+    }
+
+    fun DirectChat.getMessagesBefore(before: SentMessage): Flow<DirectSentMessageInfo> = flow {
+        var messages = fetchMessages(beforeId = before.messageId)
+        var lastMessage = messages.lastOrNull()
+
+        while (lastMessage != null) {
+            messages.forEach { emit(it) }
+
+            messages = fetchMessages(beforeId = lastMessage.messageId)
+            lastMessage = messages.lastOrNull()
+        }
+    }
+
+    fun GroupChat.getMessagesBefore(before: SentMessage): Flow<GroupSentMessageInfo> = flow {
+        var messages = fetchMessages(beforeId = before.messageId)
+        var lastMessage = messages.lastOrNull()
+
+        while (lastMessage != null) {
+            messages.forEach { emit(it) }
+
+            messages = fetchMessages(beforeId = lastMessage.messageId)
+            lastMessage = messages.lastOrNull()
+        }
+    }
+    //endregion
+
+    //region Chat.getMessagesSince(since)
+    fun Chat.getMessagesSince(since: SentMessage): Flow<SentMessageInfo> {
+        return when (this) {
+            is DirectChat -> getMessagesSince(since)
+            is GroupChat -> getMessagesSince(since)
+            else -> throw IllegalStateException()
+        }
+    }
+
+    fun DirectChat.getMessagesSince(since: SentMessage): Flow<DirectSentMessageInfo> = flow {
+        var messages = fetchMessages(sinceId = since.messageId)
+        var lastMessage = messages.lastOrNull()
+
+        while (lastMessage != null) {
+            messages.forEach { emit(it) }
+
+            messages = fetchMessages(sinceId = lastMessage.messageId)
+            lastMessage = messages.lastOrNull()
+        }
+    }
+
+    fun GroupChat.getMessagesSince(since: SentMessage): Flow<GroupSentMessageInfo> = flow {
+        var messages = fetchMessages(sinceId = since.messageId)
+        var lastMessage = messages.lastOrNull()
+
+        while (lastMessage != null) {
+            messages.forEach { emit(it) }
+
+            messages = fetchMessages(sinceId = lastMessage.messageId)
+            lastMessage = messages.lastOrNull()
+        }
+    }
+    //endregion
+
+    //region Chat.getMessagesAfter(after)
+    fun Chat.getMessagesAfter(after: SentMessage): Flow<SentMessageInfo> {
+        return when (this) {
+            is DirectChat -> getMessagesAfter(after)
+            is GroupChat -> getMessagesAfter(after)
+            else -> throw IllegalStateException()
+        }
+    }
+
+    fun DirectChat.getMessagesAfter(after: SentMessage): Flow<DirectSentMessageInfo> = flow {
+        var messages = fetchMessages(afterId = after.messageId)
+        var lastMessage = messages.lastOrNull()
+
+        while (lastMessage != null) {
+            messages.forEach { emit(it) }
+
+            messages = fetchMessages(afterId = lastMessage.messageId)
+            lastMessage = messages.lastOrNull()
+        }
+    }
+
+    fun GroupChat.getMessagesAfter(after: SentMessage): Flow<GroupSentMessageInfo> = flow {
+        var messages = fetchMessages(afterId = after.messageId)
+        var lastMessage = messages.lastOrNull()
+
+        while (lastMessage != null) {
+            messages.forEach { emit(it) }
+
+            messages = fetchMessages(afterId = lastMessage.messageId)
+            lastMessage = messages.lastOrNull()
+        }
+    }
+    //endregion
+
+    suspend fun GroupChat.getMembers(): List<NamedUserInfo> {
+        val response = httpClient.sendApiV3Request(
+            method = HttpMethod.Get,
+            endpoint = "/groups/${chatId}"
+        )
+
+        val responseData = json.parse(
+            deserializer = ResponseEnvelope.serializer(JsonObject.serializer()),
+            string = response.data
+        )
+
+        val members = responseData.response!!.getArray("members")
+
+        return members.map {
+            NamedUserInfo(
+                userId = it.jsonObject.getPrimitive("user_id").content,
+                name = it.jsonObject.getPrimitive("name").content,
+                nickname = it.jsonObject.getPrimitive("nickname").content,
+                avatar = it.jsonObject.getPrimitive("image_url").toGroupMeImage()
+            )
+        }
+    }
     //endregion
 
     //region messages
-    suspend fun likeMessage(message: SentMessageInfo) {
+    suspend fun SentMessageInfo.like() {
         httpClient.sendApiV3Request(
             method = HttpMethod.Post,
-            endpoint = "/messages/${message.chat.chatId}/${message.messageId}/like"
+            endpoint = "/messages/${chat.chatId}/${messageId}/like"
         )
     }
 
-    suspend fun unlikeMessage(message: SentMessageInfo) {
+    suspend fun SentMessageInfo.unlike() {
         httpClient.sendApiV3Request(
             method = HttpMethod.Post,
-            endpoint = "/messages/${message.chat.chatId}/${message.messageId}/unlike"
+            endpoint = "/messages/${chat.chatId}/${messageId}/unlike"
         )
     }
-
-    suspend fun SentMessageInfo.like() = likeMessage(this)
-    suspend fun SentMessageInfo.unlike() = unlikeMessage(this)
     //endregion
 
     //region users
