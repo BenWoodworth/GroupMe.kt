@@ -1,13 +1,13 @@
 package net.benwoodworth.groupme.client.chat
 
 import kotlinx.coroutines.flow.Flow
+import net.benwoodworth.groupme.GroupMe
 import net.benwoodworth.groupme.GroupMeScope
 import net.benwoodworth.groupme.User
-import net.benwoodworth.groupme.client.GroupMeClient
 
 @GroupMeScope
 interface ChatContext {
-    val client: GroupMeClient
+    val client: GroupMe
 
     val chat: Chat
 

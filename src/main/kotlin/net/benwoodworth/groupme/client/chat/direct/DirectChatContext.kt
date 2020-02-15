@@ -5,16 +5,16 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import net.benwoodworth.groupme.GroupMe
 import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
-import net.benwoodworth.groupme.client.GroupMeClient
 import net.benwoodworth.groupme.client.chat.ChatContext
 import net.benwoodworth.groupme.client.chat.Message
 import net.benwoodworth.groupme.client.chat.SentMessage
 
 class DirectChatContext internal constructor(
     override val chat: DirectChat,
-    override val client: GroupMeClient
+    override val client: GroupMe
 ) : ChatContext {
     override suspend fun sendMessage(message: Message): DirectSentMessageInfo {
         @Serializable
