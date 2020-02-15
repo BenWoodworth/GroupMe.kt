@@ -6,6 +6,7 @@ import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.client.chat.Attachment
 import net.benwoodworth.groupme.client.chat.SentMessageInfo
 import net.benwoodworth.groupme.client.media.toGroupMeImage
+import java.util.*
 
 interface DirectSentMessageInfo : SentMessageInfo {
     override val chat: DirectChat
@@ -21,7 +22,7 @@ private class DirectSentMessageInfoImpl(
     override val attachments: List<Attachment>,
     override val sourceGuid: String,
     override val likes: List<User>,
-    override val created: Long
+    override val created: Date
 ) : DirectSentMessageInfo, SentMessageInfo by SentMessageInfo(
     chat = chat,
     json = json,
@@ -51,7 +52,7 @@ internal fun DirectSentMessageInfo(
     likes: List<User> = json.getArray("favorited_by").map {
         User(it.primitive.content)
     },
-    created: Long = json.getPrimitive("created_at").long
+    created: Date = Date(json.getPrimitive("created_at").long)
 ): DirectSentMessageInfo = DirectSentMessageInfoImpl(
     chat = chat,
     json = json,

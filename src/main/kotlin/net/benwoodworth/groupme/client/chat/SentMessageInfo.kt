@@ -3,12 +3,15 @@ package net.benwoodworth.groupme.client.chat
 import kotlinx.serialization.json.JsonObject
 import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.UserInfo
+import java.util.*
 
 interface SentMessageInfo : SentMessage, Message {
     val chat: Chat
     val sender: UserInfo
     val likes: List<User>
-    val created: Long
+
+    @Deprecated("May eventually be replaced with a Kotlin date type")
+    val created: Date
 }
 
 private class SentMessageInfoImpl(
@@ -20,7 +23,7 @@ private class SentMessageInfoImpl(
     override val attachments: List<Attachment>,
     override val sourceGuid: String,
     override val likes: List<User>,
-    override val created: Long
+    override val created: Date
 ) : SentMessageInfo, SentMessage by SentMessage(
     messageId = messageId
 )
@@ -34,7 +37,7 @@ internal fun SentMessageInfo(
     attachments: List<Attachment>,
     sourceGuid: String,
     likes: List<User>,
-    created: Long
+    created: Date
 ): SentMessageInfo = SentMessageInfoImpl(
     chat = chat,
     json = json,
