@@ -548,7 +548,7 @@ class GroupMe private constructor(
         val userData = responseData.response!!.getObject("user")
 
         return NamedUserInfo(
-            userId = userData.getPrimitive("user_id").content,
+            userId = userData.getPrimitive("id").content,
             name = userData.getPrimitive("name").content,
             avatar = userData.getPrimitive("avatar_url").toGroupMeImage()
         )
@@ -589,7 +589,7 @@ class GroupMe private constructor(
             json = userJson,
             userId = userJson.getPrimitive("user_id").content,
             name = userJson.getPrimitive("name").content,
-            avatar = userJson.getPrimitive("avatar_url").toGroupMeImage()
+            avatar = userJson.getPrimitive("image_url").toGroupMeImage()
         )
     }
     //endregion
