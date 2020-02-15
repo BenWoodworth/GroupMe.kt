@@ -1,16 +1,11 @@
 package net.benwoodworth.groupme.client.bot
 
-import kotlinx.serialization.json.Json
-import net.benwoodworth.groupme.api.GroupMeHttpClient
-
 interface CallbackServerContext {
     suspend fun stop()
 }
 
 internal class CallbackServerContextImpl(
-    private val server: CallbackServer,
-    private val httpClient: GroupMeHttpClient,
-    private val json: Json
+    private val server: CallbackServer
 ) : CallbackServerContext {
     override suspend fun stop() {
         server.stop()

@@ -1,13 +1,17 @@
 package net.benwoodworth.groupme
 
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache.Apache
+import io.ktor.client.features.defaultRequest
+import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.features.json.serializer.KotlinxSerializer
+import io.ktor.client.request.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.*
-import kotlinx.serialization.list
-import net.benwoodworth.groupme.api.DefaultHttpClient
-import net.benwoodworth.groupme.api.GroupMeHttpClient
-import net.benwoodworth.groupme.api.HttpMethod
-import net.benwoodworth.groupme.api.ResponseEnvelope
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import net.benwoodworth.groupme.client.AuthenticatedUserInfo
 import net.benwoodworth.groupme.client.bot.Bot
 import net.benwoodworth.groupme.client.bot.BotInfo
@@ -25,41 +29,16 @@ import net.benwoodworth.groupme.client.media.toGroupMeImage
 
 @Suppress("unused", "MemberVisibilityCanBePrivate", "UNUSED_PARAMETER")
 class GroupMe private constructor(
-    /** The authenticated user. */
-    val user: User,
-    internal val httpClient: GroupMeHttpClient,
-    internal val json: Json
+    private val apiToken: String
 ) {
-    //region companion object
     companion object {
-        private val json = Json(JsonConfiguration.Stable.copy(strictMode = false))
+        internal const val API_V2 = "https://v2.groupme.com"
+        internal const val API_V3 = "https://api.groupme.com/v3"
 
-        private fun createHttpClient(apiToken: String? = null) = GroupMeHttpClient(
-            DefaultHttpClient(),
-            apiToken,
-            "https://api.groupme.com/v3",
-            "https://v2.groupme.com"
-        )
+        internal val json = Json(JsonConfiguration.Stable.copy(strictMode = false))
 
         suspend fun getClient(apiToken: String): GroupMe {
-            val httpClient = createHttpClient(apiToken)
-
-            @Serializable
-            class MeResponse(val id: String)
-
-            val meResponse = httpClient.sendApiV3Request(
-                method = HttpMethod.Get,
-                endpoint = "/users/me"
-            )
-
-            val responseJson = json.parse(
-                ResponseEnvelope.serializer(MeResponse.serializer()),
-                meResponse.data
-            )
-
-            val authenticatedUser = User(responseJson.response!!.id)
-
-            return GroupMe(authenticatedUser, httpClient, json)
+            return GroupMe(apiToken).apply { init() }
         }
 
         suspend inline fun getClient(apiToken: String, block: GroupMe.() -> Unit) {
@@ -67,10 +46,81 @@ class GroupMe private constructor(
         }
 
         suspend fun startCallbackServer(port: Int, callbackHandler: CallbackHandler) {
-            val server = CallbackServer(port, createHttpClient(), json, callbackHandler)
-            server.start()
+            CallbackServer(port, json, callbackHandler).start()
         }
     }
+
+    private val client = HttpClient(Apache) {
+        install(JsonFeature) {
+            serializer = KotlinxSerializer(json)
+        }
+
+        defaultRequest {
+            header("X-Access-Token", apiToken)
+        }
+    }
+
+    private suspend fun init() {
+        user = User(getAuthenticatedUserInfo().userId)
+    }
+
+    //region users
+    /**
+     * The authenticated user.
+     */
+    lateinit var user: User
+        private set
+
+    private suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo {
+        val response = client.get<ResponseEnvelope<JsonObject>> {
+            url("$API_V3/users/me")
+        }
+        val userJson = response.response!!.jsonObject
+
+        return AuthenticatedUserInfo(
+            json = userJson,
+            userId = userJson.getPrimitive("user_id").content,
+            name = userJson.getPrimitive("name").content,
+            avatar = userJson.getPrimitive("image_url").toGroupMeImage()
+        )
+    }
+
+    suspend fun User.getInfo(): NamedUserInfo {
+        if (this == user) {
+            return getAuthenticatedUserInfo()
+        }
+
+        val response = client.get<ResponseEnvelope<JsonObject>> {
+            url("$API_V2/users/$userId")
+        }
+
+        val userData = response.response!!.getObject("user")
+
+        return NamedUserInfo(
+            userId = userData.getPrimitive("id").content,
+            name = userData.getPrimitive("name").content,
+            avatar = userData.getPrimitive("avatar_url").toGroupMeImage()
+        )
+    }
+
+    //region User.getInfo(chat)
+    suspend fun User.getInfo(chat: Chat): NamedUserInfo {
+        return when (chat) {
+            is DirectChat -> getInfo(chat)
+            is GroupChat -> getInfo(chat)
+            else -> throw IllegalStateException()
+        }
+    }
+
+    suspend fun User.getInfo(chat: DirectChat): NamedUserInfo {
+        return getInfo()
+    }
+
+    suspend fun User.getInfo(chat: GroupChat): NamedUserInfo { // TODO Get only the requested user
+        return chat.getMembers()
+            .first { it == this }
+    }
+    //endregion
     //endregion
 
     //region bots
@@ -79,7 +129,7 @@ class GroupMe private constructor(
     inner class Bots internal constructor() {
         fun getBots(): Flow<BotInfo> = flow {
             @Serializable
-            class ResponseBot(
+            class BotsResponse(
                 val bot_id: String,
                 val name: String,
                 val group_id: String,
@@ -87,17 +137,11 @@ class GroupMe private constructor(
                 val callback_url: String?
             )
 
-            val response = httpClient.sendApiV3Request(
-                method = HttpMethod.Get,
-                endpoint = "/bots"
-            )
+            val response = client.get<ResponseEnvelope<List<BotsResponse>>> {
+                url("$API_V3/bots")
+            }
 
-            val responseData = json.parse(
-                deserializer = ResponseEnvelope.serializer(ResponseBot.serializer().list),
-                string = response.data
-            )
-
-            responseData.response!!.forEach {
+            response.response!!.forEach {
                 emit(
                     BotInfo(
                         botId = it.bot_id,
@@ -139,11 +183,9 @@ class GroupMe private constructor(
         val newEntries = mapOf("bot_id" to JsonPrimitive(botId))
         val appendedjson = JsonObject(message.json + newEntries)
 
-        httpClient.sendApiV3Request(
-            method = HttpMethod.Post,
-            endpoint = "/bots/post",
-            body = json.stringify(JsonObjectSerializer, appendedjson)
-        )
+        client.post<JsonObject>("$API_V3/bots/post") {
+            body = appendedjson
+        }
     }
     //endregion
 
@@ -160,21 +202,13 @@ class GroupMe private constructor(
         fun getDirectChats(): Flow<DirectChatInfo> = flow {
             var page = 1
             do {
-                val response = httpClient.sendApiV3Request(
-                    method = HttpMethod.Get,
-                    endpoint = "/chats",
-                    params = mapOf(
-                        "page" to page.toString(),
-                        "per_page" to "100"
-                    )
-                )
+                val response = client.get<ResponseEnvelope<List<JsonObject>>> {
+                    url("$API_V3/chats")
+                    parameter("page", page)
+                    parameter("per_page", 100)
+                }
 
-                val responseData = json.parse(
-                    deserializer = ResponseEnvelope.serializer(JsonObject.serializer().list),
-                    string = response.data
-                )
-
-                responseData.response!!.forEach {
+                response.response!!.forEach {
                     val otherUser = it.getObject("other_user").run {
                         NamedUserInfo(
                             userId = getPrimitive("id").content,
@@ -187,33 +221,25 @@ class GroupMe private constructor(
                 }
 
                 page++
-            } while (responseData.response!!.any())
+            } while (response.response!!.any())
         }
 
         fun getGroupChats(): Flow<GroupChatInfo> = flow {
             var page = 1
             do {
-                val response = httpClient.sendApiV3Request(
-                    method = HttpMethod.Get,
-                    endpoint = "/groups",
-                    params = mapOf(
-                        "page" to page.toString(),
-                        "per_page" to "100",
-                        "omit" to "memberships"
-                    )
-                )
+                val response = client.get<ResponseEnvelope<List<JsonObject>>> {
+                    url("$API_V3/groups")
+                    parameter("page", page)
+                    parameter("per_page", 100)
+                    parameter("omit", "memberships")
+                }
 
-                val responseData = json.parse(
-                    deserializer = ResponseEnvelope.serializer(JsonObject.serializer().list),
-                    string = response.data
-                )
-
-                responseData.response!!.forEach {
+                response.response!!.forEach {
                     emit(GroupChatInfo(it))
                 }
 
                 page++
-            } while (responseData.response!!.any())
+            } while (response.response!!.any())
         }
         //endregion
     }
@@ -234,27 +260,19 @@ class GroupMe private constructor(
             val direct_messages: List<JsonObject>
         )
 
-        val response = httpClient.sendApiV3Request(
-            method = HttpMethod.Get,
-            endpoint = "/direct_messages",
-            params = mapOf(
-                "other_user_id" to toUser.userId,
-                "before_id" to beforeId,
-                "since_id" to sinceId,
-                "after_id" to afterId
-            )
-        )
+        val response = client.get<ResponseEnvelope<DirectMessagesResponse>> {
+            url("$API_V3/direct_messages")
+            parameter("other_user_id", toUser.userId)
+            parameter("before_id", beforeId)
+            parameter("since_id", sinceId)
+            parameter("after_id", afterId)
+        }
 
-        if (response.code == 304) {
+        if (response.meta.code == 304) {
             return emptyList()
         }
 
-        val responseJson = json.parse(
-            ResponseEnvelope.serializer(DirectMessagesResponse.serializer()),
-            response.data
-        )
-
-        return responseJson.response!!.direct_messages
+        return response.response!!.direct_messages
             .map { DirectSentMessageInfo(this, it) }
     }
 
@@ -269,26 +287,18 @@ class GroupMe private constructor(
             val messages: List<JsonObject>
         )
 
-        val response = httpClient.sendApiV3Request(
-            method = HttpMethod.Get,
-            endpoint = "/groups/${chatId}/messages",
-            params = mapOf(
-                "before_id" to beforeId,
-                "since_id" to sinceId,
-                "after_id" to afterId
-            )
-        )
+        val response = client.get<ResponseEnvelope<GroupMessagesResponse>> {
+            url("$API_V3/groups/${chatId}/messages")
+            parameter("before_id", beforeId)
+            parameter("since_id", sinceId)
+            parameter("after_id", afterId)
+        }
 
-        if (response.code == 304) {
+        if (response.meta.code == 304) {
             return emptyList()
         }
 
-        val responseJson = json.parse(
-            ResponseEnvelope.serializer(GroupMessagesResponse.serializer()),
-            response.data
-        )
-
-        return responseJson.response!!.messages
+        return response.response!!.messages
             .map { GroupSentMessageInfo(it) }
     }
     //endregion
@@ -306,15 +316,12 @@ class GroupMe private constructor(
         @Serializable
         class GroupMessagesRequest(val message: JsonObject)
 
-        val response = httpClient.sendApiV3Request(
-            method = HttpMethod.Post,
-            endpoint = "/groups/${chatId}/messages",
-            body = json.stringify(GroupMessagesRequest.serializer(), GroupMessagesRequest(message.json))
-        )
+        val response = client.post<ResponseEnvelope<JsonObject>> {
+            url("$API_V3/groups/${chatId}/messages")
+            body = message.json
+        }
 
-        val responseJson = json.parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
-
-        return responseJson.response!!.getObject("message")
+        return response.response!!.getObject("message")
             .let { GroupSentMessageInfo(it) }
     }
 
@@ -325,15 +332,12 @@ class GroupMe private constructor(
         val newEntries = mapOf("recipient_id" to JsonPrimitive(toUser.userId))
         val appendedjson = JsonObject(message.json + newEntries)
 
-        val response = httpClient.sendApiV3Request(
-            method = HttpMethod.Post,
-            endpoint = "/direct_messages",
-            body = json.stringify(DirectMessagesRequest.serializer(), DirectMessagesRequest(appendedjson))
-        )
+        val response = client.post<ResponseEnvelope<JsonObject>> {
+            url("$API_V3/direct_messages")
+            body = DirectMessagesRequest(appendedjson)
+        }
 
-        return json
-            .parse(ResponseEnvelope.serializer(JsonObject.serializer()), response.data)
-            .response!!.getObject("direct_message")
+        return response.response!!.getObject("direct_message")
             .let { DirectSentMessageInfo(this, it) }
     }
     //endregion
@@ -489,17 +493,11 @@ class GroupMe private constructor(
     }
 
     suspend fun GroupChat.getMembers(): Flow<NamedUserInfo> {
-        val response = httpClient.sendApiV3Request(
-            method = HttpMethod.Get,
-            endpoint = "/groups/${chatId}"
-        )
+        val response = client.get<ResponseEnvelope<JsonObject>> {
+            url("$API_V3/groups/${chatId}")
+        }
 
-        val responseData = json.parse(
-            deserializer = ResponseEnvelope.serializer(JsonObject.serializer()),
-            string = response.data
-        )
-
-        val members = responseData.response!!.getArray("members")
+        val members = response.response!!.getArray("members")
 
         return members.asFlow().map {
             NamedUserInfo(
@@ -515,83 +513,15 @@ class GroupMe private constructor(
 
     //region messages
     suspend fun SentMessage.like() {
-        httpClient.sendApiV3Request(
-            method = HttpMethod.Post,
-            endpoint = "/messages/${chat.chatId}/${messageId}/like"
-        )
+        client.post<Unit> {
+            url("$API_V3/messages/${chat.chatId}/${messageId}/like")
+        }
     }
 
     suspend fun SentMessage.unlike() {
-        httpClient.sendApiV3Request(
-            method = HttpMethod.Post,
-            endpoint = "/messages/${chat.chatId}/${messageId}/unlike"
-        )
-    }
-    //endregion
-
-    //region users
-    suspend fun User.getInfo(): NamedUserInfo {
-        if (this == user) {
-            return getAuthenticatedUserInfo()
+        client.post<Unit> {
+            url("$API_V3/messages/${chat.chatId}/${messageId}/unlike")
         }
-
-        val response = httpClient.sendApiV2Request(
-            method = HttpMethod.Get,
-            endpoint = "/users/${userId}"
-        )
-
-        val responseData = json.parse(
-            deserializer = ResponseEnvelope.serializer(JsonObject.serializer()),
-            string = response.data
-        )
-
-        val userData = responseData.response!!.getObject("user")
-
-        return NamedUserInfo(
-            userId = userData.getPrimitive("id").content,
-            name = userData.getPrimitive("name").content,
-            avatar = userData.getPrimitive("avatar_url").toGroupMeImage()
-        )
-    }
-
-    //region User.getInfo(chat)
-    suspend fun User.getInfo(chat: Chat): NamedUserInfo {
-        return when (chat) {
-            is DirectChat -> getInfo(chat)
-            is GroupChat -> getInfo(chat)
-            else -> throw IllegalStateException()
-        }
-    }
-
-    suspend fun User.getInfo(chat: DirectChat): NamedUserInfo {
-        return getInfo()
-    }
-
-    suspend fun User.getInfo(chat: GroupChat): NamedUserInfo { // TODO Get only the requested user
-        return chat.getMembers()
-            .first { it == this }
-    }
-    //endregion
-
-    private suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo {
-        val response = httpClient.sendApiV3Request(
-            method = HttpMethod.Get,
-            endpoint = "/users/me"
-        )
-
-        val responseData = json.parse(
-            deserializer = ResponseEnvelope.serializer(JsonObject.serializer()),
-            string = response.data
-        )
-
-        val userJson = responseData.response!!.jsonObject
-
-        return AuthenticatedUserInfo(
-            json = userJson,
-            userId = userJson.getPrimitive("user_id").content,
-            name = userJson.getPrimitive("name").content,
-            avatar = userJson.getPrimitive("image_url").toGroupMeImage()
-        )
     }
     //endregion
 }

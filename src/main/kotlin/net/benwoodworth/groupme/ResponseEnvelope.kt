@@ -1,4 +1,4 @@
-package net.benwoodworth.groupme.api
+package net.benwoodworth.groupme
 
 import kotlinx.serialization.Serializable
 

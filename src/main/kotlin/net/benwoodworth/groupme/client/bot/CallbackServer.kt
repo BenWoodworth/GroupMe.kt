@@ -4,16 +4,14 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import net.benwoodworth.groupme.api.GroupMeHttpClient
 import java.net.InetSocketAddress
 
 internal class CallbackServer(
     val port: Int,
-    httpClient: GroupMeHttpClient,
     private val json: Json,
     private val callbackHandler: CallbackHandler
 ) {
-    private val context = CallbackServerContextImpl(this, httpClient, json)
+    private val context = CallbackServerContextImpl(this)
 
     private lateinit var server: HttpServer
 
