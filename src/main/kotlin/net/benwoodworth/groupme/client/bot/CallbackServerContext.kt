@@ -6,7 +6,7 @@ import net.benwoodworth.groupme.api.GroupMeHttpClient
 
 @GroupMeScope
 interface CallbackServerContext {
-    suspend fun stopServer()
+    suspend fun stop()
 }
 
 internal class CallbackServerContextImpl(
@@ -14,7 +14,7 @@ internal class CallbackServerContextImpl(
     private val httpClient: GroupMeHttpClient,
     private val json: Json
 ) : CallbackServerContext {
-    override suspend fun stopServer() {
+    override suspend fun stop() {
         server.stop()
     }
 }
