@@ -26,6 +26,7 @@ import net.benwoodworth.groupme.client.chat.group.GroupSentMessageInfo
 import net.benwoodworth.groupme.client.media.GroupMeImage
 import net.benwoodworth.groupme.client.media.toGroupMeImage
 
+@Suppress("unused", "MemberVisibilityCanBePrivate", "UNUSED_PARAMETER")
 class GroupMe private constructor(
     /** The authenticated user. */
     val user: User,
