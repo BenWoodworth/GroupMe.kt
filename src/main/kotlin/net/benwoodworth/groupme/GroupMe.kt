@@ -501,14 +501,14 @@ class GroupMe private constructor(
     //endregion
 
     //region messages
-    suspend fun SentMessageInfo.like() {
+    suspend fun SentMessage.like() {
         httpClient.sendApiV3Request(
             method = HttpMethod.Post,
             endpoint = "/messages/${chat.chatId}/${messageId}/like"
         )
     }
 
-    suspend fun SentMessageInfo.unlike() {
+    suspend fun SentMessage.unlike() {
         httpClient.sendApiV3Request(
             method = HttpMethod.Post,
             endpoint = "/messages/${chat.chatId}/${messageId}/unlike"
