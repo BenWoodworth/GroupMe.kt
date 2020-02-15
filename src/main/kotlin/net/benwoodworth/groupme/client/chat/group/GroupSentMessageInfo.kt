@@ -51,7 +51,7 @@ internal fun GroupSentMessageInfo(
     likes: List<User> = json.getArray("favorited_by").map {
         User(it.primitive.content)
     },
-    created: Date = Date(json.getPrimitive("created_at").long)
+    created: Date = Date(json.getPrimitive("created_at").long * 1000)
 ): GroupSentMessageInfo = GroupSentMessageInfoImpl(
     json = json,
     messageId = messageId,

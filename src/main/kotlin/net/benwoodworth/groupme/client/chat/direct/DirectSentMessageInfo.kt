@@ -52,7 +52,7 @@ internal fun DirectSentMessageInfo(
     likes: List<User> = json.getArray("favorited_by").map {
         User(it.primitive.content)
     },
-    created: Date = Date(json.getPrimitive("created_at").long)
+    created: Date = Date(json.getPrimitive("created_at").long * 1000)
 ): DirectSentMessageInfo = DirectSentMessageInfoImpl(
     chat = chat,
     json = json,
