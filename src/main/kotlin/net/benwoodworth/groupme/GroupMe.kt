@@ -1,9 +1,6 @@
 package net.benwoodworth.groupme
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 import kotlinx.serialization.list
@@ -477,7 +474,21 @@ class GroupMe private constructor(
     }
     //endregion
 
-    suspend fun GroupChat.getMembers(): List<NamedUserInfo> {
+    //region Chat.getMembers()
+    suspend fun Chat.getMembers(): Flow<NamedUserInfo> {
+        return when (this) {
+            is DirectChat -> getMembers()
+            is GroupChat -> getMembers()
+            else -> throw IllegalStateException()
+        }
+    }
+
+    suspend fun DirectChat.getMembers(): Flow<NamedUserInfo> = flow {
+        emit(fromUser.getInfo(this@getMembers))
+        emit(toUser.getInfo(this@getMembers))
+    }
+
+    suspend fun GroupChat.getMembers(): Flow<NamedUserInfo> {
         val response = httpClient.sendApiV3Request(
             method = HttpMethod.Get,
             endpoint = "/groups/${chatId}"
@@ -497,8 +508,9 @@ class GroupMe private constructor(
                 nickname = it.jsonObject.getPrimitive("nickname").content,
                 avatar = it.jsonObject.getPrimitive("image_url").toGroupMeImage()
             )
-        }
+        }.asFlow()
     }
+    //endregion
     //endregion
 
     //region messages
