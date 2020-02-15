@@ -501,14 +501,14 @@ class GroupMe private constructor(
 
         val members = responseData.response!!.getArray("members")
 
-        return members.map {
+        return members.asFlow().map {
             NamedUserInfo(
                 userId = it.jsonObject.getPrimitive("user_id").content,
                 name = it.jsonObject.getPrimitive("name").content,
                 nickname = it.jsonObject.getPrimitive("nickname").content,
                 avatar = it.jsonObject.getPrimitive("image_url").toGroupMeImage()
             )
-        }.asFlow()
+        }
     }
     //endregion
     //endregion
