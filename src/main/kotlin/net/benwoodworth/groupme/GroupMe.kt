@@ -77,53 +77,57 @@ class GroupMe private constructor(
     //endregion
 
     //region bots
-    suspend fun createBot(
-        name: String?,
-        avatar: GroupMeImage?,
-        callbackUrl: String?
-    ): BotInfo {
-        TODO()
-    }
+    val bots: Bots = Bots()
 
-    suspend fun Bot.delete() {
-        TODO()
-    }
-
-    fun getBots(): Flow<BotInfo> = flow {
-        @Serializable
-        class ResponseBot(
-            val bot_id: String,
-            val name: String,
-            val group_id: String,
-            val avatar_url: String?,
-            val callback_url: String?
-        )
-
-        val response = httpClient.sendApiV3Request(
-            method = HttpMethod.Get,
-            endpoint = "/bots"
-        )
-
-        val responseData = json.parse(
-            deserializer = ResponseEnvelope.serializer(ResponseBot.serializer().list),
-            string = response.data
-        )
-
-        responseData.response!!.forEach {
-            emit(
-                BotInfo(
-                    botId = it.bot_id,
-                    name = it.name,
-                    group = GroupChat(it.group_id),
-                    avatar = it.avatar_url?.toGroupMeImage(),
-                    callbackUrl = it.callback_url
-                )
+    inner class Bots internal constructor() {
+        fun getBots(): Flow<BotInfo> = flow {
+            @Serializable
+            class ResponseBot(
+                val bot_id: String,
+                val name: String,
+                val group_id: String,
+                val avatar_url: String?,
+                val callback_url: String?
             )
+
+            val response = httpClient.sendApiV3Request(
+                method = HttpMethod.Get,
+                endpoint = "/bots"
+            )
+
+            val responseData = json.parse(
+                deserializer = ResponseEnvelope.serializer(ResponseBot.serializer().list),
+                string = response.data
+            )
+
+            responseData.response!!.forEach {
+                emit(
+                    BotInfo(
+                        botId = it.bot_id,
+                        name = it.name,
+                        group = GroupChat(it.group_id),
+                        avatar = it.avatar_url?.toGroupMeImage(),
+                        callbackUrl = it.callback_url
+                    )
+                )
+            }
+        }
+
+        suspend fun create(
+            name: String?,
+            avatar: GroupMeImage?,
+            callbackUrl: String?
+        ): BotInfo {
+            TODO()
+        }
+
+        suspend fun delete(bot: Bot) {
+            TODO()
         }
     }
 
     suspend fun Bot.getInfo(): BotInfo {
-        return getBots().first { it == this }
+        return bots.getBots().first { it == this }
     }
 
     suspend fun Bot.setInfo(
