@@ -5,17 +5,17 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.*
 import kotlinx.serialization.list
 import net.benwoodworth.groupme.api.DefaultHttpClient
 import net.benwoodworth.groupme.api.GroupMeHttpClient
 import net.benwoodworth.groupme.api.HttpMethod
 import net.benwoodworth.groupme.api.ResponseEnvelope
 import net.benwoodworth.groupme.client.AuthenticatedUserInfo
-import net.benwoodworth.groupme.client.bot.*
+import net.benwoodworth.groupme.client.bot.Bot
+import net.benwoodworth.groupme.client.bot.BotInfo
+import net.benwoodworth.groupme.client.bot.CallbackHandler
+import net.benwoodworth.groupme.client.bot.CallbackServer
 import net.benwoodworth.groupme.client.chat.*
 import net.benwoodworth.groupme.client.chat.direct.DirectChat
 import net.benwoodworth.groupme.client.chat.direct.DirectChatInfo
@@ -85,11 +85,9 @@ class GroupMe private constructor(
         TODO()
     }
 
-    suspend fun deleteBot(bot: Bot) {
+    suspend fun Bot.delete() {
         TODO()
     }
-
-    suspend fun Bot.delete() = deleteBot(this)
 
     fun getBots(): Flow<BotInfo> = flow {
         @Serializable
@@ -124,37 +122,28 @@ class GroupMe private constructor(
         }
     }
 
-    suspend fun getBotInfo(bot: Bot): BotInfo {
-        return getBots().first { it == bot }
-    }
-
-    suspend fun Bot.getInfo() = getBotInfo(this)
-
-    suspend fun setBotInfo(
-        bot: Bot,
-        name: String?,
-        avatar: GroupMeImage?,
-        callbackUrl: String?
-    ): BotInfo {
-        TODO()
+    suspend fun Bot.getInfo(): BotInfo {
+        return getBots().first { it == this }
     }
 
     suspend fun Bot.setInfo(
         name: String? = null,
         avatar: GroupMeImage? = null,
         callbackUrl: String? = null
-    ) = setBotInfo(this, name, avatar, callbackUrl)
-
-    fun getBotContext(bot: Bot): BotContext {
-        return BotContext(bot, httpClient, json)
+    ): BotInfo {
+        TODO()
     }
 
-    val Bot.context: BotContext
-        get() = getBotContext(this)
+    suspend fun Bot.sendMessage(message: Message) {
+        val newEntries = mapOf("bot_id" to JsonPrimitive(botId))
+        val appendedjson = JsonObject(message.json + newEntries)
 
-    suspend operator fun Bot.invoke(block: suspend BotContext.() -> Unit) = context { block() }
-
-    suspend fun Bot(botId: String, block: suspend BotContext.() -> Unit) = (Bot(botId)) { block() }
+        httpClient.sendApiV3Request(
+            method = HttpMethod.Post,
+            endpoint = "/bots/post",
+            body = json.stringify(JsonObjectSerializer, appendedjson)
+        )
+    }
     //endregion
 
     //region chats
