@@ -151,75 +151,79 @@ class GroupMe private constructor(
     //endregion
 
     //region chats
+    val chats: Chats = Chats()
+
+    inner class Chats internal constructor() {
+        //region getChats()
+        fun getChats(): Flow<ChatInfo> = flow<ChatInfo> {
+            getGroupChats().collect { emit(it) }
+            getDirectChats().collect { emit(it) }
+        }
+
+        fun getDirectChats(): Flow<DirectChatInfo> = flow {
+            var page = 1
+            do {
+                val response = httpClient.sendApiV3Request(
+                    method = HttpMethod.Get,
+                    endpoint = "/chats",
+                    params = mapOf(
+                        "page" to page.toString(),
+                        "per_page" to "100"
+                    )
+                )
+
+                val responseData = json.parse(
+                    deserializer = ResponseEnvelope.serializer(JsonObject.serializer().list),
+                    string = response.data
+                )
+
+                responseData.response!!.forEach {
+                    val otherUser = it.getObject("other_user").run {
+                        NamedUserInfo(
+                            userId = getPrimitive("id").content,
+                            name = getPrimitive("name").content,
+                            avatar = getPrimitive("avatar_url").toGroupMeImage()
+                        )
+                    }
+
+                    emit(DirectChatInfo(it, user, otherUser))
+                }
+
+                page++
+            } while (responseData.response!!.any())
+        }
+
+        fun getGroupChats(): Flow<GroupChatInfo> = flow {
+            var page = 1
+            do {
+                val response = httpClient.sendApiV3Request(
+                    method = HttpMethod.Get,
+                    endpoint = "/groups",
+                    params = mapOf(
+                        "page" to page.toString(),
+                        "per_page" to "100",
+                        "omit" to "memberships"
+                    )
+                )
+
+                val responseData = json.parse(
+                    deserializer = ResponseEnvelope.serializer(JsonObject.serializer().list),
+                    string = response.data
+                )
+
+                responseData.response!!.forEach {
+                    emit(GroupChatInfo(it))
+                }
+
+                page++
+            } while (responseData.response!!.any())
+        }
+        //endregion
+    }
+
     fun GroupMe.DirectChat(toUser: User): DirectChat {
         return DirectChat(user, toUser)
     }
-
-    //region getChats()
-    fun getChats(): Flow<ChatInfo> = flow<ChatInfo> {
-        getGroupChats().collect { emit(it) }
-        getDirectChats().collect { emit(it) }
-    }
-
-    fun getDirectChats(): Flow<DirectChatInfo> = flow {
-        var page = 1
-        do {
-            val response = httpClient.sendApiV3Request(
-                method = HttpMethod.Get,
-                endpoint = "/chats",
-                params = mapOf(
-                    "page" to page.toString(),
-                    "per_page" to "100"
-                )
-            )
-
-            val responseData = json.parse(
-                deserializer = ResponseEnvelope.serializer(JsonObject.serializer().list),
-                string = response.data
-            )
-
-            responseData.response!!.forEach {
-                val otherUser = it.getObject("other_user").run {
-                    NamedUserInfo(
-                        userId = getPrimitive("id").content,
-                        name = getPrimitive("name").content,
-                        avatar = getPrimitive("avatar_url").toGroupMeImage()
-                    )
-                }
-
-                emit(DirectChatInfo(it, user, otherUser))
-            }
-
-            page++
-        } while (responseData.response!!.any())
-    }
-
-    fun getGroupChats(): Flow<GroupChatInfo> = flow {
-        var page = 1
-        do {
-            val response = httpClient.sendApiV3Request(
-                method = HttpMethod.Get,
-                endpoint = "/groups",
-                params = mapOf(
-                    "page" to page.toString(),
-                    "per_page" to "100",
-                    "omit" to "memberships"
-                )
-            )
-
-            val responseData = json.parse(
-                deserializer = ResponseEnvelope.serializer(JsonObject.serializer().list),
-                string = response.data
-            )
-
-            responseData.response!!.forEach {
-                emit(GroupChatInfo(it))
-            }
-
-            page++
-        } while (responseData.response!!.any())
-    }
-    //endregion
 
     //region Chat.fetchMessages(beforeId, sinceId, afterId)
     private suspend fun DirectChat.fetchMessages(
