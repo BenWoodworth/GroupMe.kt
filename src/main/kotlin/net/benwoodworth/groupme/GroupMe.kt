@@ -160,29 +160,33 @@ class GroupMe private constructor(
         }
 
         suspend fun create(
-            name: String?,
+            name: String,
+            group: GroupChat,
             avatar: GroupMeImage?,
             callbackUrl: String?
         ): BotInfo {
-            TODO()
-        }
+            val response = client.post(ResponseEnvelope.serializer(JsonObject.serializer())) {
+                url("$API_V3/bots")
+                parameter("name", name)
+                parameter("group_id", group.chatId)
+                parameter("avatar_url", avatar?.imageUrl)
+                parameter("callback_url", callbackUrl)
+            }
 
-        suspend fun delete(bot: Bot) {
-            TODO()
+            return BotInfo(response.response!!)
+        }
+    }
+
+    suspend fun Bot.destroy() {
+        client.post(ResponseEnvelope.serializer(JsonObject.serializer())) {
+            url("$API_V3/bots/destroy")
+            parameter("bot_id", botId)
         }
     }
 
     suspend fun Bot.getInfo(): BotInfo {
         return bots.getBots()
             .first { it == this }
-    }
-
-    suspend fun Bot.setInfo(
-        name: String? = null,
-        avatar: GroupMeImage? = null,
-        callbackUrl: String? = null
-    ): BotInfo {
-        TODO()
     }
 
     suspend fun Bot.sendMessage(message: Message) {
