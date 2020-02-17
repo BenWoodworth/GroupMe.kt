@@ -2,6 +2,7 @@ package net.benwoodworth.groupme.client.chat.direct
 
 import net.benwoodworth.groupme.User
 import net.benwoodworth.groupme.client.chat.Chat
+import net.benwoodworth.groupme.client.chat.ChatImpl
 
 interface DirectChat : Chat {
     val fromUser: User
@@ -11,9 +12,9 @@ interface DirectChat : Chat {
 private class DirectChatImpl(
     override val fromUser: User,
     override val toUser: User
-) : DirectChat, Chat by Chat(
+) : ChatImpl(
     chatId = "${fromUser.userId}+${toUser.userId}"
-) {
+), DirectChat {
     override fun toString(): String {
         return "DirectChat($fromUser, $toUser)"
     }

@@ -1,5 +1,9 @@
 package net.benwoodworth.groupme.client.chat
 
+import net.benwoodworth.groupme.User
+import net.benwoodworth.groupme.client.chat.direct.DirectChat
+import net.benwoodworth.groupme.client.chat.group.GroupChat
+
 interface Chat {
     val chatId: String
 
@@ -11,7 +15,7 @@ interface Chat {
     override fun hashCode(): Int
 }
 
-private class ChatImpl(
+internal open class ChatImpl(
     override val chatId: String
 ) : Chat {
     override fun equals(other: Any?): Boolean {
@@ -29,6 +33,11 @@ private class ChatImpl(
 
 internal fun Chat(
     chatId: String
-): Chat = ChatImpl(
-    chatId = chatId
-)
+): Chat {
+    if (chatId.count { it == '+' } == 1) {
+        val userIds = chatId.split('+')
+        return DirectChat(User(userIds[0]), User(userIds[1]))
+    }
+
+    return GroupChat(chatId)
+}
