@@ -150,29 +150,12 @@ class GroupMe private constructor(
 
     inner class Bots internal constructor() {
         fun getBots(): Flow<BotInfo> = flow {
-            @Serializable
-            class BotsResponse(
-                val bot_id: String,
-                val name: String,
-                val group_id: String,
-                val avatar_url: String?,
-                val callback_url: String?
-            )
-
-            val response = client.get(ResponseEnvelope.serializer(BotsResponse.serializer().list)) {
+            val response = client.get(ResponseEnvelope.serializer(JsonObject.serializer().list)) {
                 url("$API_V3/bots")
             }
 
             response.response!!.forEach {
-                emit(
-                    BotInfo(
-                        botId = it.bot_id,
-                        name = it.name,
-                        group = GroupChat(it.group_id),
-                        avatar = it.avatar_url?.toGroupMeImage(),
-                        callbackUrl = it.callback_url
-                    )
-                )
+                emit(BotInfo(it))
             }
         }
 

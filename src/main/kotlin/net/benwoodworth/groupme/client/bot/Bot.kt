@@ -1,16 +1,24 @@
 package net.benwoodworth.groupme.client.bot
 
-open class Bot(
+interface Bot {
     val botId: String
-) {
+
     /**
      * Compares [Bot]s by [botId].
      */
-    final override fun equals(other: Any?): Boolean {
+    override fun equals(other: Any?): Boolean
+
+    override fun hashCode(): Int
+}
+
+private class BotImpl(
+    override val botId: String
+) : Bot {
+    override fun equals(other: Any?): Boolean {
         return other is Bot && botId == other.botId
     }
 
-    final override fun hashCode(): Int {
+    override fun hashCode(): Int {
         return botId.hashCode()
     }
 
@@ -18,3 +26,9 @@ open class Bot(
         return "Bot($botId)"
     }
 }
+
+fun Bot(
+    botId: String
+): Bot = BotImpl(
+    botId = botId
+)
