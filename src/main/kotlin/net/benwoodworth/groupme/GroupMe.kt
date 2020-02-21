@@ -43,10 +43,6 @@ class GroupMe private constructor(
             val client = HttpClientFactory.create(apiToken)
             return GroupMe(client).apply { init() }
         }
-
-        suspend inline fun getClient(apiToken: String, block: GroupMe.() -> Unit) {
-            getClient(apiToken).run { block() }
-        }
     }
 
     private suspend fun init() {
@@ -75,7 +71,7 @@ class GroupMe private constructor(
     /**
      * The authenticated user.
      */
-    final override lateinit var user: User
+    override lateinit var user: User
         private set
 
     private suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo {

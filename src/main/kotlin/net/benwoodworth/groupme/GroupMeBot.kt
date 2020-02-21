@@ -20,10 +20,6 @@ class GroupMeBot internal constructor(
             return GroupMeBot(client)
         }
 
-        suspend inline fun getClient(block: GroupMeBot.() -> Unit) {
-            getClient().run { block() }
-        }
-
         suspend fun startCallbackServer(port: Int, callbackHandler: CallbackHandler) {
             CallbackServer(port, GroupMe.json, callbackHandler).start()
         }
