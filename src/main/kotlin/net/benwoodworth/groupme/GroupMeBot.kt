@@ -15,7 +15,7 @@ class GroupMeBot internal constructor(
     private val client: HttpClient
 ) {
     companion object {
-        suspend fun getClient(): GroupMeBot {
+        fun getClient(): GroupMeBot {
             val client = HttpClientFactory.create(null)
             return GroupMeBot(client)
         }
