@@ -30,7 +30,9 @@ import net.benwoodworth.groupme.client.media.toGroupMeImage
 @Suppress("unused", "MemberVisibilityCanBePrivate", "UNUSED_PARAMETER")
 class GroupMe private constructor(
     private val client: HttpClient
-) {
+) : GroupMeClient.Authenticated,
+    GroupMeClient by GroupMeBot(client) {
+
     companion object {
         internal const val API_V2 = "https://v2.groupme.com"
         internal const val API_V3 = "https://api.groupme.com/v3"
@@ -73,7 +75,7 @@ class GroupMe private constructor(
     /**
      * The authenticated user.
      */
-    lateinit var user: User
+    final override lateinit var user: User
         private set
 
     private suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo {
@@ -90,7 +92,7 @@ class GroupMe private constructor(
         )
     }
 
-    suspend fun User.getInfo(): NamedUserInfo {
+    override suspend fun User.getInfo(): NamedUserInfo {
         if (this == user) {
             return getAuthenticatedUserInfo()
         }
@@ -109,7 +111,7 @@ class GroupMe private constructor(
     }
 
     //region User.getInfo(chat)
-    suspend fun User.getInfo(chat: Chat): NamedUserInfo {
+    override suspend fun User.getInfo(chat: Chat): NamedUserInfo {
         return when (chat) {
             is DirectChat -> getInfo(chat)
             is GroupChat -> getInfo(chat)
@@ -117,11 +119,11 @@ class GroupMe private constructor(
         }
     }
 
-    suspend fun User.getInfo(chat: DirectChat): NamedUserInfo {
+    override suspend fun User.getInfo(chat: DirectChat): NamedUserInfo {
         return getInfo()
     }
 
-    suspend fun User.getInfo(chat: GroupChat): NamedUserInfo { // TODO Get only the requested user
+    override suspend fun User.getInfo(chat: GroupChat): NamedUserInfo { // TODO Get only the requested user
         return chat.getMembers()
             .first { it == this }
     }
@@ -129,10 +131,10 @@ class GroupMe private constructor(
     //endregion
 
     //region bots
-    val bots: Bots = Bots()
+    override val bots: GroupMeClient.Authenticated.Bots = Bots()
 
-    inner class Bots internal constructor() {
-        fun getBots(): Flow<BotInfo> = flow {
+    private inner class Bots : GroupMeClient.Authenticated.Bots {
+        override fun getBots(): Flow<BotInfo> = flow {
             val response = client.getEnveloped(JsonObject.serializer().list) {
                 url("$API_V3/bots")
             }
@@ -142,7 +144,7 @@ class GroupMe private constructor(
             }
         }
 
-        suspend fun create(
+        override suspend fun create(
             name: String,
             group: GroupChat,
             avatar: GroupMeImage?,
@@ -160,30 +162,30 @@ class GroupMe private constructor(
         }
     }
 
-    suspend fun Bot.destroy() {
+    override suspend fun Bot.destroy() {
         client.postEnveloped(JsonObject.serializer()) {
             url("$API_V3/bots/destroy")
             parameter("bot_id", botId)
         }
     }
 
-    suspend fun Bot.getInfo(): BotInfo {
+    override suspend fun Bot.getInfo(): BotInfo {
         return bots.getBots()
             .first { it == this }
     }
     //endregion
 
     //region chats
-    val chats: Chats = Chats()
+    override val chats: GroupMeClient.Authenticated.Chats = Chats()
 
-    inner class Chats internal constructor() {
+    private inner class Chats : GroupMeClient.Authenticated.Chats {
         //region getChats()
-        fun getChats(): Flow<ChatInfo> = flow<ChatInfo> {
+        override fun getChats(): Flow<ChatInfo> = flow<ChatInfo> {
             getGroupChats().collect { emit(it) }
             getDirectChats().collect { emit(it) }
         }
 
-        fun getDirectChats(): Flow<DirectChatInfo> = flow {
+        override fun getDirectChats(): Flow<DirectChatInfo> = flow {
             var page = 1
             do {
                 val response = client.getEnveloped(JsonObject.serializer().list) {
@@ -208,7 +210,7 @@ class GroupMe private constructor(
             } while (response.response!!.any())
         }
 
-        fun getGroupChats(): Flow<GroupChatInfo> = flow {
+        override fun getGroupChats(): Flow<GroupChatInfo> = flow {
             var page = 1
             do {
                 val response = client.getEnveloped(JsonObject.serializer().list) {
@@ -228,7 +230,7 @@ class GroupMe private constructor(
         //endregion
     }
 
-    fun GroupMe.DirectChat(toUser: User): DirectChat {
+    override fun GroupMe.DirectChat(toUser: User): DirectChat {
         return DirectChat(user, toUser)
     }
 
@@ -288,7 +290,7 @@ class GroupMe private constructor(
     //endregion
 
     //region Chat.sendMessage(message)
-    suspend fun Chat.sendMessage(message: Message): SentMessageInfo {
+    override suspend fun Chat.sendMessage(message: Message): SentMessageInfo {
         return when (this) {
             is DirectChat -> sendMessage(message)
             is GroupChat -> sendMessage(message)
@@ -296,7 +298,7 @@ class GroupMe private constructor(
         }
     }
 
-    suspend fun GroupChat.sendMessage(message: Message): GroupSentMessageInfo {
+    override suspend fun GroupChat.sendMessage(message: Message): GroupSentMessageInfo {
         @Serializable
         class GroupMessagesRequest(val message: JsonObject)
 
@@ -310,7 +312,7 @@ class GroupMe private constructor(
             .let { GroupSentMessageInfo(it) }
     }
 
-    suspend fun DirectChat.sendMessage(message: Message): DirectSentMessageInfo {
+    override suspend fun DirectChat.sendMessage(message: Message): DirectSentMessageInfo {
         @Serializable
         class DirectMessagesRequest(val direct_message: JsonObject)
 
@@ -329,7 +331,7 @@ class GroupMe private constructor(
     //endregion
 
     //region Chat.getMessages()
-    fun Chat.getMessages(): Flow<SentMessageInfo> {
+    override fun Chat.getMessages(): Flow<SentMessageInfo> {
         return when (this) {
             is DirectChat -> getMessages()
             is GroupChat -> getMessages()
@@ -337,7 +339,7 @@ class GroupMe private constructor(
         }
     }
 
-    fun DirectChat.getMessages(): Flow<DirectSentMessageInfo> = flow {
+    override fun DirectChat.getMessages(): Flow<DirectSentMessageInfo> = flow {
         var messages = fetchMessages()
         var lastMessage = messages.lastOrNull()
 
@@ -349,7 +351,7 @@ class GroupMe private constructor(
         }
     }
 
-    fun GroupChat.getMessages(): Flow<GroupSentMessageInfo> = flow {
+    override fun GroupChat.getMessages(): Flow<GroupSentMessageInfo> = flow {
         var messages = fetchMessages()
         var lastMessage = messages.lastOrNull()
 
@@ -363,7 +365,7 @@ class GroupMe private constructor(
     //endregion
 
     //region Chat.getMessagesBefore(before)
-    fun Chat.getMessagesBefore(before: SentMessage): Flow<SentMessageInfo> {
+    override fun Chat.getMessagesBefore(before: SentMessage): Flow<SentMessageInfo> {
         return when (this) {
             is DirectChat -> getMessagesBefore(before)
             is GroupChat -> getMessagesBefore(before)
@@ -371,7 +373,7 @@ class GroupMe private constructor(
         }
     }
 
-    fun DirectChat.getMessagesBefore(before: SentMessage): Flow<DirectSentMessageInfo> = flow {
+    override fun DirectChat.getMessagesBefore(before: SentMessage): Flow<DirectSentMessageInfo> = flow {
         var messages = fetchMessages(beforeId = before.messageId)
         var lastMessage = messages.lastOrNull()
 
@@ -383,7 +385,7 @@ class GroupMe private constructor(
         }
     }
 
-    fun GroupChat.getMessagesBefore(before: SentMessage): Flow<GroupSentMessageInfo> = flow {
+    override fun GroupChat.getMessagesBefore(before: SentMessage): Flow<GroupSentMessageInfo> = flow {
         var messages = fetchMessages(beforeId = before.messageId)
         var lastMessage = messages.lastOrNull()
 
@@ -397,7 +399,7 @@ class GroupMe private constructor(
     //endregion
 
     //region Chat.getMessagesSince(since)
-    fun Chat.getMessagesSince(since: SentMessage): Flow<SentMessageInfo> {
+    override fun Chat.getMessagesSince(since: SentMessage): Flow<SentMessageInfo> {
         return when (this) {
             is DirectChat -> getMessagesSince(since)
             is GroupChat -> getMessagesSince(since)
@@ -405,7 +407,7 @@ class GroupMe private constructor(
         }
     }
 
-    fun DirectChat.getMessagesSince(since: SentMessage): Flow<DirectSentMessageInfo> = flow {
+    override fun DirectChat.getMessagesSince(since: SentMessage): Flow<DirectSentMessageInfo> = flow {
         var messages = fetchMessages(sinceId = since.messageId)
         var lastMessage = messages.lastOrNull()
 
@@ -417,7 +419,7 @@ class GroupMe private constructor(
         }
     }
 
-    fun GroupChat.getMessagesSince(since: SentMessage): Flow<GroupSentMessageInfo> = flow {
+    override fun GroupChat.getMessagesSince(since: SentMessage): Flow<GroupSentMessageInfo> = flow {
         var messages = fetchMessages(sinceId = since.messageId)
         var lastMessage = messages.lastOrNull()
 
@@ -431,7 +433,7 @@ class GroupMe private constructor(
     //endregion
 
     //region Chat.getMessagesAfter(after)
-    fun Chat.getMessagesAfter(after: SentMessage): Flow<SentMessageInfo> {
+    override fun Chat.getMessagesAfter(after: SentMessage): Flow<SentMessageInfo> {
         return when (this) {
             is DirectChat -> getMessagesAfter(after)
             is GroupChat -> getMessagesAfter(after)
@@ -439,7 +441,7 @@ class GroupMe private constructor(
         }
     }
 
-    fun DirectChat.getMessagesAfter(after: SentMessage): Flow<DirectSentMessageInfo> = flow {
+    override fun DirectChat.getMessagesAfter(after: SentMessage): Flow<DirectSentMessageInfo> = flow {
         var messages = fetchMessages(afterId = after.messageId)
         var lastMessage = messages.lastOrNull()
 
@@ -451,7 +453,7 @@ class GroupMe private constructor(
         }
     }
 
-    fun GroupChat.getMessagesAfter(after: SentMessage): Flow<GroupSentMessageInfo> = flow {
+    override fun GroupChat.getMessagesAfter(after: SentMessage): Flow<GroupSentMessageInfo> = flow {
         var messages = fetchMessages(afterId = after.messageId)
         var lastMessage = messages.lastOrNull()
 
@@ -465,7 +467,7 @@ class GroupMe private constructor(
     //endregion
 
     //region Chat.getMembers()
-    suspend fun Chat.getMembers(): Flow<NamedUserInfo> {
+    override suspend fun Chat.getMembers(): Flow<NamedUserInfo> {
         return when (this) {
             is DirectChat -> getMembers()
             is GroupChat -> getMembers()
@@ -473,12 +475,12 @@ class GroupMe private constructor(
         }
     }
 
-    suspend fun DirectChat.getMembers(): Flow<NamedUserInfo> = flow {
+    override suspend fun DirectChat.getMembers(): Flow<NamedUserInfo> = flow {
         emit(fromUser.getInfo(this@getMembers))
         emit(toUser.getInfo(this@getMembers))
     }
 
-    suspend fun GroupChat.getMembers(): Flow<NamedUserInfo> {
+    override suspend fun GroupChat.getMembers(): Flow<NamedUserInfo> {
         val response = client.getEnveloped(JsonObject.serializer()) {
             url("$API_V3/groups/${chatId}")
         }
@@ -498,13 +500,13 @@ class GroupMe private constructor(
     //endregion
 
     //region messages
-    suspend fun SentMessage.like() {
+    override suspend fun SentMessage.like() {
         client.post<Unit> {
             url("$API_V3/messages/${chat.chatId}/${messageId}/like")
         }
     }
 
-    suspend fun SentMessage.unlike() {
+    override suspend fun SentMessage.unlike() {
         client.post<Unit> {
             url("$API_V3/messages/${chat.chatId}/${messageId}/unlike")
         }

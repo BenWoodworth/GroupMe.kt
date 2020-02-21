@@ -13,7 +13,7 @@ import net.benwoodworth.groupme.client.chat.Message
 
 class GroupMeBot internal constructor(
     private val client: HttpClient
-) {
+) : GroupMeClient {
     companion object {
         fun getClient(): GroupMeBot {
             val client = HttpClientFactory.create(null)
@@ -29,7 +29,7 @@ class GroupMeBot internal constructor(
         }
     }
 
-    suspend fun Bot.sendMessage(message: Message) {
+    override suspend fun Bot.sendMessage(message: Message) {
         val newEntries = mapOf("bot_id" to JsonPrimitive(botId))
         val appendedjson = JsonObject(message.json + newEntries)
 
