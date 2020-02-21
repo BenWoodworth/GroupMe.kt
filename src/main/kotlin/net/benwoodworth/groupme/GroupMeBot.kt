@@ -23,6 +23,10 @@ class GroupMeBot internal constructor(
         suspend inline fun getClient(block: GroupMeBot.() -> Unit) {
             getClient().run { block() }
         }
+
+        suspend fun startCallbackServer(port: Int, callbackHandler: CallbackHandler) {
+            CallbackServer(port, GroupMe.json, callbackHandler).start()
+        }
     }
 
     suspend fun Bot.sendMessage(message: Message) {
@@ -32,10 +36,6 @@ class GroupMeBot internal constructor(
         client.post<JsonObject>("${GroupMe.API_V3}/bots/post") {
             contentType(ContentType.Application.Json)
             body = appendedjson
-        }
-
-        suspend fun startCallbackServer(port: Int, callbackHandler: CallbackHandler) {
-            CallbackServer(port, GroupMe.json, callbackHandler).start()
         }
     }
 }
