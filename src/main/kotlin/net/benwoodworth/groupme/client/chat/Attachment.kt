@@ -167,6 +167,7 @@ sealed class Attachment {
     }
 }
 
+@Suppress("DEPRECATION")
 fun Attachment(json: JsonObject): Attachment {
     return when (json.getPrimitive("type").content) {
         "image" -> Attachment.Image(json)
