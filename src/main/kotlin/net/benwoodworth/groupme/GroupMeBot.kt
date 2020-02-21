@@ -2,6 +2,7 @@ package net.benwoodworth.groupme
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
+import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.serialization.json.JsonObject
@@ -29,7 +30,8 @@ class GroupMeBot internal constructor(
         val newEntries = mapOf("bot_id" to JsonPrimitive(botId))
         val appendedjson = JsonObject(message.json + newEntries)
 
-        client.post<JsonObject>("${GroupMe.API_V3}/bots/post") {
+        client.post<JsonObject> {
+            url("${GroupMe.API_V3}/bots/post")
             contentType(ContentType.Application.Json)
             body = appendedjson
         }

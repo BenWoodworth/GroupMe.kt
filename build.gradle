@@ -39,6 +39,12 @@ dependencies {
     implementation "io.ktor:ktor-server-netty:$version_ktor"
 }
 
+compileKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ["-Xuse-experimental=kotlin.Experimental"]
+    }
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {

@@ -1,19 +1,17 @@
 package net.benwoodworth.groupme
 
 import io.ktor.client.HttpClient
-import io.ktor.client.request.*
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.readText
+import io.ktor.client.request.parameter
+import io.ktor.client.request.post
+import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.list
 import net.benwoodworth.groupme.client.AuthenticatedUserInfo
 import net.benwoodworth.groupme.client.bot.Bot
 import net.benwoodworth.groupme.client.bot.BotInfo
@@ -49,24 +47,6 @@ class GroupMe private constructor(
         user = User(getAuthenticatedUserInfo().userId)
     }
 
-    //region ktor extensions
-    private suspend inline fun <T : Any> HttpClient.getEnveloped(
-        serializer: KSerializer<T>,
-        block: HttpRequestBuilder.() -> Unit
-    ): ResponseEnvelope<T> {
-        val response = this.get<HttpResponse> { block() }
-        return json.parse(ResponseEnvelope.serializer(serializer), response.readText())
-    }
-
-    private suspend inline fun <T : Any> HttpClient.postEnveloped(
-        serializer: KSerializer<T>,
-        block: HttpRequestBuilder.() -> Unit
-    ): ResponseEnvelope<T> {
-        val response = this.post<HttpResponse> { block() }
-        return json.parse(ResponseEnvelope.serializer(serializer), response.readText())
-    }
-    //endregion
-
     //region users
     /**
      * The authenticated user.
@@ -75,7 +55,7 @@ class GroupMe private constructor(
         private set
 
     private suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo {
-        val response = client.getEnveloped(JsonObject.serializer()) {
+        val response = client.getEnveloped<JsonObject> {
             url("$API_V3/users/me")
         }
         val userJson = response.response!!.jsonObject
@@ -93,7 +73,7 @@ class GroupMe private constructor(
             return getAuthenticatedUserInfo()
         }
 
-        val response = client.getEnveloped(JsonObject.serializer()) {
+        val response = client.getEnveloped<JsonObject> {
             url("$API_V2/users/$userId")
         }
 
@@ -131,7 +111,7 @@ class GroupMe private constructor(
 
     private inner class Bots : GroupMeClient.Authenticated.Bots {
         override fun getBots(): Flow<BotInfo> = flow {
-            val response = client.getEnveloped(JsonObject.serializer().list) {
+            val response = client.getEnveloped<List<JsonObject>> {
                 url("$API_V3/bots")
             }
 
@@ -146,7 +126,7 @@ class GroupMe private constructor(
             avatar: GroupMeImage?,
             callbackUrl: String?
         ): BotInfo {
-            val response = client.postEnveloped(JsonObject.serializer()) {
+            val response = client.postEnveloped<JsonObject> {
                 url("$API_V3/bots")
                 parameter("name", name)
                 parameter("group_id", group.chatId)
@@ -159,7 +139,7 @@ class GroupMe private constructor(
     }
 
     override suspend fun Bot.destroy() {
-        client.postEnveloped(JsonObject.serializer()) {
+        client.postEnveloped<JsonObject> {
             url("$API_V3/bots/destroy")
             parameter("bot_id", botId)
         }
@@ -184,7 +164,7 @@ class GroupMe private constructor(
         override fun getDirectChats(): Flow<DirectChatInfo> = flow {
             var page = 1
             do {
-                val response = client.getEnveloped(JsonObject.serializer().list) {
+                val response = client.getEnveloped<List<JsonObject>> {
                     url("$API_V3/chats")
                     parameter("page", page)
                     parameter("per_page", 100)
@@ -209,7 +189,7 @@ class GroupMe private constructor(
         override fun getGroupChats(): Flow<GroupChatInfo> = flow {
             var page = 1
             do {
-                val response = client.getEnveloped(JsonObject.serializer().list) {
+                val response = client.getEnveloped<List<JsonObject>> {
                     url("$API_V3/groups")
                     parameter("page", page)
                     parameter("per_page", 100)
@@ -242,7 +222,7 @@ class GroupMe private constructor(
             val direct_messages: List<JsonObject>
         )
 
-        val response = client.getEnveloped(DirectMessagesResponse.serializer()) {
+        val response = client.getEnveloped<DirectMessagesResponse> {
             url("$API_V3/direct_messages")
             parameter("other_user_id", toUser.userId)
             parameter("before_id", beforeId)
@@ -269,7 +249,7 @@ class GroupMe private constructor(
             val messages: List<JsonObject>
         )
 
-        val response = client.getEnveloped(GroupMessagesResponse.serializer()) {
+        val response = client.getEnveloped<GroupMessagesResponse> {
             url("$API_V3/groups/${chatId}/messages")
             parameter("before_id", beforeId)
             parameter("since_id", sinceId)
@@ -298,7 +278,7 @@ class GroupMe private constructor(
         @Serializable
         class GroupMessagesRequest(val message: JsonObject)
 
-        val response = client.postEnveloped(JsonObject.serializer()) {
+        val response = client.postEnveloped<JsonObject> {
             url("$API_V3/groups/${chatId}/messages")
             contentType(ContentType.Application.Json)
             body = message.json
@@ -315,7 +295,7 @@ class GroupMe private constructor(
         val newEntries = mapOf("recipient_id" to JsonPrimitive(toUser.userId))
         val appendedjson = JsonObject(message.json + newEntries)
 
-        val response = client.postEnveloped(JsonObject.serializer()) {
+        val response = client.postEnveloped<JsonObject> {
             url("$API_V3/direct_messages")
             contentType(ContentType.Application.Json)
             body = DirectMessagesRequest(appendedjson)
@@ -477,7 +457,7 @@ class GroupMe private constructor(
     }
 
     override suspend fun GroupChat.getMembers(): Flow<NamedUserInfo> {
-        val response = client.getEnveloped(JsonObject.serializer()) {
+        val response = client.getEnveloped<JsonObject> {
             url("$API_V3/groups/${chatId}")
         }
 
