@@ -17,8 +17,6 @@ import kotlinx.serialization.list
 import net.benwoodworth.groupme.client.AuthenticatedUserInfo
 import net.benwoodworth.groupme.client.bot.Bot
 import net.benwoodworth.groupme.client.bot.BotInfo
-import net.benwoodworth.groupme.client.bot.CallbackHandler
-import net.benwoodworth.groupme.client.bot.CallbackServer
 import net.benwoodworth.groupme.client.chat.*
 import net.benwoodworth.groupme.client.chat.direct.DirectChat
 import net.benwoodworth.groupme.client.chat.direct.DirectChatInfo
@@ -46,10 +44,6 @@ class GroupMe private constructor(
 
         suspend inline fun getClient(apiToken: String, block: GroupMe.() -> Unit) {
             getClient(apiToken).run { block() }
-        }
-
-        suspend fun startCallbackServer(port: Int, callbackHandler: CallbackHandler) {
-            CallbackServer(port, json, callbackHandler).start()
         }
     }
 
@@ -176,16 +170,6 @@ class GroupMe private constructor(
     suspend fun Bot.getInfo(): BotInfo {
         return bots.getBots()
             .first { it == this }
-    }
-
-    suspend fun Bot.sendMessage(message: Message) {
-        val newEntries = mapOf("bot_id" to JsonPrimitive(botId))
-        val appendedjson = JsonObject(message.json + newEntries)
-
-        client.post<JsonObject>("$API_V3/bots/post") {
-            contentType(ContentType.Application.Json)
-            body = appendedjson
-        }
     }
     //endregion
 
