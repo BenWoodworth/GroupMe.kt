@@ -132,7 +132,7 @@ class GroupMe private constructor(
         return when (chat) {
             is DirectChat -> getInfo(chat)
             is GroupChat -> getInfo(chat)
-            else -> throw IllegalStateException()
+            else -> throw UnsupportedOperationException("Only supports DirectChat and GroupChat types")
         }
     }
 
@@ -321,7 +321,7 @@ class GroupMe private constructor(
         return when (this) {
             is DirectChat -> sendMessage(message)
             is GroupChat -> sendMessage(message)
-            else -> throw IllegalStateException()
+            else -> throw UnsupportedOperationException("Only supports DirectChat and GroupChat types")
         }
     }
 
@@ -362,7 +362,7 @@ class GroupMe private constructor(
         return when (this) {
             is DirectChat -> getMessages()
             is GroupChat -> getMessages()
-            else -> throw IllegalStateException()
+            else -> throw UnsupportedOperationException("Only supports DirectChat and GroupChat types")
         }
     }
 
@@ -396,7 +396,7 @@ class GroupMe private constructor(
         return when (this) {
             is DirectChat -> getMessagesBefore(before)
             is GroupChat -> getMessagesBefore(before)
-            else -> throw IllegalStateException()
+            else -> throw UnsupportedOperationException("Only supports DirectChat and GroupChat types")
         }
     }
 
@@ -430,7 +430,7 @@ class GroupMe private constructor(
         return when (this) {
             is DirectChat -> getMessagesSince(since)
             is GroupChat -> getMessagesSince(since)
-            else -> throw IllegalStateException()
+            else -> throw UnsupportedOperationException("Only supports DirectChat and GroupChat types")
         }
     }
 
@@ -464,7 +464,7 @@ class GroupMe private constructor(
         return when (this) {
             is DirectChat -> getMessagesAfter(after)
             is GroupChat -> getMessagesAfter(after)
-            else -> throw IllegalStateException()
+            else -> throw UnsupportedOperationException("Only supports DirectChat and GroupChat types")
         }
     }
 
@@ -498,7 +498,7 @@ class GroupMe private constructor(
         return when (this) {
             is DirectChat -> getMembers()
             is GroupChat -> getMembers()
-            else -> throw IllegalStateException()
+            else -> throw UnsupportedOperationException("Only supports DirectChat and GroupChat types")
         }
     }
 
