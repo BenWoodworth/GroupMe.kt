@@ -1,10 +1,6 @@
 package net.benwoodworth.groupme
 
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
-import io.ktor.client.features.defaultRequest
-import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.request.*
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readText
@@ -35,7 +31,7 @@ import net.benwoodworth.groupme.client.media.toGroupMeImage
 
 @Suppress("unused", "MemberVisibilityCanBePrivate", "UNUSED_PARAMETER")
 class GroupMe private constructor(
-    private val apiToken: String
+    private val client: HttpClient
 ) {
     companion object {
         internal const val API_V2 = "https://v2.groupme.com"
@@ -44,7 +40,8 @@ class GroupMe private constructor(
         internal val json = Json(JsonConfiguration.Stable.copy(strictMode = false))
 
         suspend fun getClient(apiToken: String): GroupMe {
-            return GroupMe(apiToken).apply { init() }
+            val client = HttpClientFactory.create(apiToken)
+            return GroupMe(client).apply { init() }
         }
 
         suspend inline fun getClient(apiToken: String, block: GroupMe.() -> Unit) {
@@ -53,16 +50,6 @@ class GroupMe private constructor(
 
         suspend fun startCallbackServer(port: Int, callbackHandler: CallbackHandler) {
             CallbackServer(port, json, callbackHandler).start()
-        }
-    }
-
-    private val client = HttpClient(Apache) {
-        install(JsonFeature) {
-            serializer = KotlinxSerializer(json)
-        }
-
-        defaultRequest {
-            header("X-Access-Token", apiToken)
         }
     }
 
