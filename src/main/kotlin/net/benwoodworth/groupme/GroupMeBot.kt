@@ -42,7 +42,9 @@ class GroupMeBot internal constructor(
         when (response.status) {
             HttpStatusCode.Created -> {
             }
-            else -> throw ResponseException(response)
+            else -> {
+                throw ResponseException(response)
+            }
         }
     }
 }
