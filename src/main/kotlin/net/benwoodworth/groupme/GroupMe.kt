@@ -235,12 +235,12 @@ class GroupMe private constructor(
         }
 
         return when (response.status) {
-            in HttpStatusCode.Class.Success -> {
+            HttpStatusCode.OK -> {
                 response.toResponseEnvelope<DirectMessagesResponse>()
                     .response!!.direct_messages
                     .map { DirectSentMessageInfo(this, it) }
             }
-            in HttpStatusCode.Class.Redirection -> {
+            HttpStatusCode.NotModified -> {
                 emptyList()
             }
             else -> {
@@ -268,12 +268,12 @@ class GroupMe private constructor(
         }
 
         return when (response.status) {
-            in HttpStatusCode.Class.Success -> {
+            HttpStatusCode.OK -> {
                 response.toResponseEnvelope<GroupMessagesResponse>()
                     .response!!.messages
                     .map { GroupSentMessageInfo(it) }
             }
-            in HttpStatusCode.Class.Redirection -> {
+            HttpStatusCode.NotModified -> {
                 emptyList()
             }
             else -> {
