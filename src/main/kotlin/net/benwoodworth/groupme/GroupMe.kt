@@ -59,17 +59,27 @@ class GroupMe private constructor(
         private set
 
     private suspend fun getAuthenticatedUserInfo(): AuthenticatedUserInfo {
-        val response = client.getEnveloped<JsonObject> {
+        val response = client.get<HttpResponse> {
             url("$API_V3/users/me")
         }
-        val userJson = response.response!!.jsonObject
 
-        return AuthenticatedUserInfo(
-            json = userJson,
-            userId = userJson.getPrimitive("user_id").content,
-            name = userJson.getPrimitive("name").content,
-            avatar = userJson.getPrimitive("image_url").toGroupMeImage()
-        )
+        return when (response.status) {
+            HttpStatusCode.OK -> {
+                val userJson = response
+                    .toResponseEnvelope<JsonObject>()
+                    .response!!.jsonObject
+
+                AuthenticatedUserInfo(
+                    json = userJson,
+                    userId = userJson.getPrimitive("user_id").content,
+                    name = userJson.getPrimitive("name").content,
+                    avatar = userJson.getPrimitive("image_url").toGroupMeImage()
+                )
+            }
+            else -> {
+                throw ResponseException(response)
+            }
+        }
     }
 
     override suspend fun User.getInfo(): NamedUserInfo {
@@ -77,17 +87,25 @@ class GroupMe private constructor(
             return getAuthenticatedUserInfo()
         }
 
-        val response = client.getEnveloped<JsonObject> {
+        val response = client.get<HttpResponse> {
             url("$API_V2/users/$userId")
         }
 
-        val userData = response.response!!.getObject("user")
+        return when (response.status) {
+            HttpStatusCode.OK -> {
+                val userData = response.toResponseEnvelope<JsonObject>()
+                    .response!!.getObject("user")
 
-        return NamedUserInfo(
-            userId = userData.getPrimitive("id").content,
-            name = userData.getPrimitive("name").content,
-            avatar = userData.getPrimitive("avatar_url").toGroupMeImage()
-        )
+                NamedUserInfo(
+                    userId = userData.getPrimitive("id").content,
+                    name = userData.getPrimitive("name").content,
+                    avatar = userData.getPrimitive("avatar_url").toGroupMeImage()
+                )
+            }
+            else -> {
+                throw ResponseException(response)
+            }
+        }
     }
 
     //region User.getInfo(chat)
@@ -115,12 +133,19 @@ class GroupMe private constructor(
 
     private inner class Bots : GroupMeClient.Authenticated.Bots {
         override fun getBots(): Flow<BotInfo> = flow {
-            val response = client.getEnveloped<List<JsonObject>> {
+            val response = client.get<HttpResponse> {
                 url("$API_V3/bots")
             }
 
-            response.response!!.forEach {
-                emit(BotInfo(it))
+            when (response.status) {
+                HttpStatusCode.OK -> {
+                    response.toResponseEnvelope<List<JsonObject>>().response!!.forEach {
+                        emit(BotInfo(it))
+                    }
+                }
+                else -> {
+                    throw ResponseException(response)
+                }
             }
         }
 
@@ -130,7 +155,7 @@ class GroupMe private constructor(
             avatar: GroupMeImage?,
             callbackUrl: String?
         ): BotInfo {
-            val response = client.postEnveloped<JsonObject> {
+            val response = client.post<HttpResponse> {
                 url("$API_V3/bots")
                 parameter("name", name)
                 parameter("group_id", group.chatId)
@@ -138,14 +163,28 @@ class GroupMe private constructor(
                 parameter("callback_url", callbackUrl)
             }
 
-            return BotInfo(response.response!!)
+            when (response.status) {
+                HttpStatusCode.Created -> {
+                    return BotInfo(response.toResponseEnvelope<JsonObject>().response!!)
+                }
+                else -> {
+                    throw ResponseException(response)
+                }
+            }
         }
     }
 
     override suspend fun Bot.destroy() {
-        client.postEnveloped<JsonObject> {
+        val response = client.post<HttpResponse> {
             url("$API_V3/bots/destroy")
             parameter("bot_id", botId)
+        }
+
+        return when (response.status) {
+            HttpStatusCode.OK -> Unit
+            else -> {
+                throw ResponseException(response)
+            }
         }
     }
 
@@ -167,45 +206,63 @@ class GroupMe private constructor(
 
         override fun getDirectChats(): Flow<DirectChatInfo> = flow {
             var page = 1
+            var responseChats: List<JsonObject>
             do {
-                val response = client.getEnveloped<List<JsonObject>> {
+                val response = client.get<HttpResponse> {
                     url("$API_V3/chats")
                     parameter("page", page)
                     parameter("per_page", 100)
                 }
 
-                response.response!!.forEach {
-                    val otherUser = it.getObject("other_user").run {
-                        NamedUserInfo(
-                            userId = getPrimitive("id").content,
-                            name = getPrimitive("name").content,
-                            avatar = getPrimitive("avatar_url").toGroupMeImage()
-                        )
-                    }
+                when (response.status) {
+                    HttpStatusCode.OK -> {
+                        responseChats = response.toResponseEnvelope<List<JsonObject>>().response!!
+                        responseChats.forEach {
+                            val otherUser = it.getObject("other_user").run {
+                                NamedUserInfo(
+                                    userId = getPrimitive("id").content,
+                                    name = getPrimitive("name").content,
+                                    avatar = getPrimitive("avatar_url").toGroupMeImage()
+                                )
+                            }
 
-                    emit(DirectChatInfo(it, user, otherUser))
+                            emit(DirectChatInfo(it, user, otherUser))
+                        }
+                    }
+                    else -> {
+                        throw ResponseException(response)
+                    }
                 }
 
                 page++
-            } while (response.response!!.any())
+            } while (responseChats.any())
         }
 
         override fun getGroupChats(): Flow<GroupChatInfo> = flow {
             var page = 1
+            var responseChats: List<JsonObject>
             do {
-                val response = client.getEnveloped<List<JsonObject>> {
+                val response = client.get<HttpResponse> {
                     url("$API_V3/groups")
                     parameter("page", page)
                     parameter("per_page", 100)
                     parameter("omit", "memberships")
                 }
 
-                response.response!!.forEach {
-                    emit(GroupChatInfo(it))
+                when (response.status) {
+                    HttpStatusCode.OK -> {
+                        responseChats = response.toResponseEnvelope<List<JsonObject>>().response!!
+                        responseChats.forEach {
+                            emit(GroupChatInfo(it))
+                        }
+                    }
+                    else -> {
+                        throw ResponseException(response)
+                    }
                 }
 
                 page++
-            } while (response.response!!.any())
+            } while (responseChats.any())
         }
         //endregion
     }
@@ -296,14 +353,22 @@ class GroupMe private constructor(
         @Serializable
         class GroupMessagesRequest(val message: JsonObject)
 
-        val response = client.postEnveloped<JsonObject> {
+        val response = client.post<HttpResponse> {
             url("$API_V3/groups/${chatId}/messages")
             contentType(ContentType.Application.Json)
             body = message.json
         }
 
-        return response.response!!.getObject("message")
-            .let { GroupSentMessageInfo(it) }
+        return when (response.status) {
+            HttpStatusCode.Created -> {
+                response.toResponseEnvelope<JsonObject>()
+                    .response!!.getObject("message")
+                    .let { GroupSentMessageInfo(it) }
+            }
+            else -> {
+                throw ResponseException(response)
+            }
+        }
     }
 
     override suspend fun DirectChat.sendMessage(message: Message): DirectSentMessageInfo {
@@ -313,14 +378,22 @@ class GroupMe private constructor(
         val newEntries = mapOf("recipient_id" to JsonPrimitive(toUser.userId))
         val appendedjson = JsonObject(message.json + newEntries)
 
-        val response = client.postEnveloped<JsonObject> {
+        val response = client.post<HttpResponse> {
             url("$API_V3/direct_messages")
             contentType(ContentType.Application.Json)
             body = DirectMessagesRequest(appendedjson)
         }
 
-        return response.response!!.getObject("direct_message")
-            .let { DirectSentMessageInfo(this, it) }
+        return when (response.status) {
+            HttpStatusCode.Created -> {
+                response.toResponseEnvelope<JsonObject>()
+                    .response!!.getObject("direct_message")
+                    .let { DirectSentMessageInfo(this, it) }
+            }
+            else -> {
+                throw ResponseException(response)
+            }
+        }
     }
     //endregion
 
@@ -479,19 +552,27 @@ class GroupMe private constructor(
     }
 
     override suspend fun GroupChat.getMembers(): Flow<NamedUserInfo> {
-        val response = client.getEnveloped<JsonObject> {
+        val response = client.get<HttpResponse> {
             url("$API_V3/groups/${chatId}")
         }
 
-        val members = response.response!!.getArray("members")
+        return when (response.status) {
+            HttpStatusCode.OK -> {
+                val members = response.toResponseEnvelope<JsonObject>()
+                    .response!!.getArray("members")
 
-        return members.asFlow().map {
-            NamedUserInfo(
-                userId = it.jsonObject.getPrimitive("user_id").content,
-                name = it.jsonObject.getPrimitive("name").content,
-                nickname = it.jsonObject.getPrimitive("nickname").content,
-                avatar = it.jsonObject.getPrimitive("image_url").toGroupMeImage()
-            )
+                members.asFlow().map {
+                    NamedUserInfo(
+                        userId = it.jsonObject.getPrimitive("user_id").content,
+                        name = it.jsonObject.getPrimitive("name").content,
+                        nickname = it.jsonObject.getPrimitive("nickname").content,
+                        avatar = it.jsonObject.getPrimitive("image_url").toGroupMeImage()
+                    )
+                }
+            }
+            else -> {
+                throw ResponseException(response)
+            }
         }
     }
     //endregion
@@ -499,14 +580,30 @@ class GroupMe private constructor(
 
     //region messages
     override suspend fun SentMessage.like() {
-        client.post<Unit> {
+        val response = client.post<HttpResponse> {
             url("$API_V3/messages/${chat.chatId}/${messageId}/like")
+        }
+
+        when (response.status) {
+            HttpStatusCode.OK -> {
+            }
+            else -> {
+                throw ResponseException(response)
+            }
         }
     }
 
     override suspend fun SentMessage.unlike() {
-        client.post<Unit> {
+        val response = client.post<HttpResponse> {
             url("$API_V3/messages/${chat.chatId}/${messageId}/unlike")
+        }
+
+        when (response.status) {
+            HttpStatusCode.OK -> {
+            }
+            else -> {
+                throw ResponseException(response)
+            }
         }
     }
     //endregion
