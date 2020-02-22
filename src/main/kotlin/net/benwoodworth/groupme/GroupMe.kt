@@ -1,10 +1,14 @@
 package net.benwoodworth.groupme
 
 import io.ktor.client.HttpClient
+import io.ktor.client.features.ResponseException
+import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.Serializable
@@ -222,7 +226,7 @@ class GroupMe private constructor(
             val direct_messages: List<JsonObject>
         )
 
-        val response = client.getEnveloped<DirectMessagesResponse> {
+        val response = client.get<HttpResponse> {
             url("$API_V3/direct_messages")
             parameter("other_user_id", toUser.userId)
             parameter("before_id", beforeId)
@@ -230,12 +234,19 @@ class GroupMe private constructor(
             parameter("after_id", afterId)
         }
 
-        if (response.meta.code == 304) {
-            return emptyList()
+        return when (response.status) {
+            in HttpStatusCode.Class.Success -> {
+                response.toResponseEnvelope<DirectMessagesResponse>()
+                    .response!!.direct_messages
+                    .map { DirectSentMessageInfo(this, it) }
+            }
+            in HttpStatusCode.Class.Redirection -> {
+                emptyList()
+            }
+            else -> {
+                throw ResponseException(response)
+            }
         }
-
-        return response.response!!.direct_messages
-            .map { DirectSentMessageInfo(this, it) }
     }
 
     private suspend fun GroupChat.fetchMessages(
@@ -249,19 +260,26 @@ class GroupMe private constructor(
             val messages: List<JsonObject>
         )
 
-        val response = client.getEnveloped<GroupMessagesResponse> {
+        val response = client.get<HttpResponse> {
             url("$API_V3/groups/${chatId}/messages")
             parameter("before_id", beforeId)
             parameter("since_id", sinceId)
             parameter("after_id", afterId)
         }
 
-        if (response.meta.code == 304) {
-            return emptyList()
+        return when (response.status) {
+            in HttpStatusCode.Class.Success -> {
+                response.toResponseEnvelope<GroupMessagesResponse>()
+                    .response!!.messages
+                    .map { GroupSentMessageInfo(it) }
+            }
+            in HttpStatusCode.Class.Redirection -> {
+                emptyList()
+            }
+            else -> {
+                throw ResponseException(response)
+            }
         }
-
-        return response.response!!.messages
-            .map { GroupSentMessageInfo(it) }
     }
     //endregion
 

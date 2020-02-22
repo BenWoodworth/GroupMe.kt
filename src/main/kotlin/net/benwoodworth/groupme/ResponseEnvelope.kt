@@ -44,3 +44,9 @@ internal suspend inline fun <reified T : Any> HttpClient.postEnveloped(
     val serializer = ResponseEnvelope.serializer(serializer<T>())
     return GroupMe.json.parse(serializer, response.readText())
 }
+
+@UseExperimental(ImplicitReflectionSerializer::class)
+internal suspend inline fun <reified T : Any> HttpResponse.toResponseEnvelope(): ResponseEnvelope<T> {
+    val serializer = ResponseEnvelope.serializer(serializer<T>())
+    return GroupMe.json.parse(serializer, readText())
+}
