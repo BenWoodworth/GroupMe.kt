@@ -306,6 +306,10 @@ class GroupMe private constructor(
     }
     //endregion
 
+    override suspend fun User.sendMessage(message: Message): DirectSentMessageInfo {
+        return DirectChat(this).sendMessage(message)
+    }
+
     //region Chat.getMessages()
     override fun Chat.getMessages(): Flow<SentMessageInfo> {
         return when (this) {

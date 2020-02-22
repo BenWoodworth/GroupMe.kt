@@ -65,6 +65,8 @@ interface GroupMeClient {
 
         suspend fun DirectChat.sendMessage(message: Message): DirectSentMessageInfo
 
+        suspend fun User.sendMessage(message: Message): DirectSentMessageInfo
+
         fun Chat.getMessages(): Flow<SentMessageInfo>
 
         fun DirectChat.getMessages(): Flow<DirectSentMessageInfo>
